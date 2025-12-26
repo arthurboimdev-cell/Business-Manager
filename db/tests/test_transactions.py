@@ -1,0 +1,101 @@
+import pytest
+from db.transactions import write_transaction, read_transactions
+from db.db_connection import get_db_connection
+
+TEST_TABLE = "transactions_test"
+
+# ---------------- FIXTURE: clean table before each test ----------------
+@pytest.fixture(autouse=True)
+def clean_table():
+    """Delete all rows from the test table before each test"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"DELETE FROM {TEST_TABLE}")
+    conn.commit()
+    cursor.close()
+    conn.close()
+    yield
+    # Optional cleanup after test
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"DELETE FROM {TEST_TABLE}")
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+# ---------------- TESTS ----------------
+
+def test_write_and_read_transactions():
+    """Test basic write and read"""
+    write_transaction('2025-01-05', 'Wax 464-45', 17, 12.50, 'expense', table=TEST_TABLE)
+    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', table=TEST_TABLE)
+
+    rows = read_transactions(table=TEST_TABLE)
+    assert len(rows) == 2
+    assert rows[0]['description'] == 'Candle Sale - Vanilla'  # Last inserted first
+    assert rows[1]['description'] == 'Wax 464-45'
+
+
+def test_total_income_and_expense():
+    """Check total income and expense calculations"""
+    write_transaction('2025-01-05', 'Wax 464-45', 17, 12.50, 'expense', table=TEST_TABLE)
+    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', table=TEST_TABLE)
+
+    rows = read_transactions(table=TEST_TABLE)
+    total_income = float(sum(r['total'] for r in rows if r['transaction_type'] == 'income'))
+    total_expense = float(sum(r['total'] for r in rows if r['transaction_type'] == 'expense'))
+
+    assert total_income == pytest.approx(250.00)
+    assert total_expense == pytest.approx(212.50)
+
+
+def test_balance_calculation():
+    """Test balance = income - expenses"""
+    write_transaction('2025-01-05', 'Wax 464-45', 17, 12.50, 'expense', table=TEST_TABLE)
+    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', table=TEST_TABLE)
+
+    rows = read_transactions(table=TEST_TABLE)
+    total_income = float(sum(r['total'] for r in rows if r['transaction_type'] == 'income'))
+    total_expense = float(sum(r['total'] for r in rows if r['transaction_type'] == 'expense'))
+    balance = total_income - total_expense
+
+    assert balance == pytest.approx(37.50)
+
+
+def test_total_sold_units_and_avg_price():
+    """Test total units sold and average price per unit"""
+    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', table=TEST_TABLE)
+    write_transaction('2025-01-12', 'Candle Sale - Chocolate', 5, 30.00, 'income', table=TEST_TABLE)
+
+    rows = read_transactions(table=TEST_TABLE)
+    sold_units = sum(r['quantity'] for r in rows if r['transaction_type'] == 'income')
+    total_income = float(sum(r['total'] for r in rows if r['transaction_type'] == 'income'))
+    avg_price = total_income / sold_units if sold_units > 0 else 0
+
+    assert sold_units == 15
+    assert avg_price == pytest.approx(26.6667, 0.0001)
+
+
+def test_only_expenses():
+    """Test table with only expenses"""
+    write_transaction('2025-01-15', 'Wax Refill', 5, 20.00, 'expense', table=TEST_TABLE)
+
+    rows = read_transactions(table=TEST_TABLE)
+    total_income = float(sum(r['total'] for r in rows if r['transaction_type'] == 'income'))
+    total_expense = float(sum(r['total'] for r in rows if r['transaction_type'] == 'expense'))
+
+    assert total_income == 0
+    assert total_expense == pytest.approx(100.00)
+
+
+def test_only_income():
+    """Test table with only income"""
+    write_transaction('2025-01-20', 'Candle Sale - Lemon', 8, 15.00, 'income', table=TEST_TABLE)
+
+    rows = read_transactions(table=TEST_TABLE)
+    total_income = float(sum(r['total'] for r in rows if r['transaction_type'] == 'income'))
+    total_expense = float(sum(r['total'] for r in rows if r['transaction_type'] == 'expense'))
+
+    assert total_income == pytest.approx(120.00)
+    assert total_expense == 0

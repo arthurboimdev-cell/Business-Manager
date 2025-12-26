@@ -1,0 +1,63 @@
+
+class TransactionUtils:
+    """Utility class for transaction calculations"""
+
+    @staticmethod
+    def calculate_summary(transactions):
+        """
+        Calculate totals, balance, sold units, and average price.
+
+        Args:
+            transactions (list[dict]): List of transactions from DB.
+
+        Returns:
+            dict: {
+                "total_income": float,
+                "total_expense": float,
+                "balance": float,
+                "total_sold_units": int,
+                "avg_price_per_unit": float
+            }
+        """
+        total_income = 0
+        total_expense = 0
+        total_sold_units = 0
+        total_income_sum = 0
+
+        for t in transactions:
+            t_type = t['transaction_type']
+            t_total = float(t['total'])
+            if t_type == 'income':
+                total_income += t_total
+                total_sold_units += t['quantity']
+                total_income_sum += t_total
+            else:
+                total_expense += t_total
+
+        balance = total_income - total_expense
+        avg_price_per_unit = total_income_sum / total_sold_units if total_sold_units > 0 else 0
+
+        return {
+            "total_income": total_income,
+            "total_expense": total_expense,
+            "balance": balance,
+            "total_sold_units": total_sold_units,
+            "avg_price_per_unit": avg_price_per_unit
+        }
+
+    @staticmethod
+    def filter_by_month(transactions, year, month):
+        """Return only transactions from a specific month"""
+        return [t for t in transactions if t['date'].startswith(f"{year}-{month:02d}")]
+
+    @staticmethod
+    def filter_by_quarter(transactions, year, quarter):
+        """Return transactions from a specific quarter (1-4)"""
+        month_ranges = {1: (1, 3), 2: (4, 6), 3: (7, 9), 4: (10, 12)}
+        start, end = month_ranges[quarter]
+        return [t for t in transactions if t['date'].startswith(f"{year}-") and start <= int(t['date'][5:7]) <= end]
+
+    @staticmethod
+    def filter_by_year(transactions, year):
+        """Return only transactions from a specific year"""
+        return [t for t in transactions if t['date'].startswith(f"{year}-")]
