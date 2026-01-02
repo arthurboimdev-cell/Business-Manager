@@ -4,7 +4,9 @@ from db.transactions import write_transaction, read_transactions
 from config.config import TABLE_NAME, TREE_COLUMNS, WINDOW_TITLE, BUTTON_ADD, BUTTON_REFRESH, BUTTON_CLEAR, TRANSACTION_TYPES
 # Delete from DB
 from db.transactions import delete_transaction
+from db.transactions import delete_transaction
 from services.utils import TransactionUtils
+import tkinter.font as tkfont
 
 class TransactionGUI:
     def __init__(self, master, table=TABLE_NAME):
@@ -152,7 +154,7 @@ class TransactionGUI:
         """Load transactions and update treeview and summary"""
         self.clear_treeview()
         self.transactions = read_transactions(table=self.table)
-        print("Transactions read from DB:", self.transactions)
+        #print("Transactions read from DB:", self.transactions)
 
         # Insert each transaction into the Treeview
         for t in self.transactions:
@@ -174,6 +176,7 @@ class TransactionGUI:
             summary['total_sold_units'],
             summary['avg_price_per_unit']
         )
+        self.autosize_columns()
 
     def clear_treeview(self):
         for row_item in self.tree.get_children():
@@ -247,6 +250,40 @@ class TransactionGUI:
             summary['total_sold_units'],
             summary['avg_price_per_unit']
         )
+        self.autosize_columns()
+
+    def autosize_columns(self):
+        """Automatically resize columns to fit their content"""
+        try:
+            font = tkfont.nametofont("TkTextFont")
+        except Exception:
+            return
+        
+        for col in TREE_COLUMNS:
+            # Measure header width
+            max_width = font.measure(col.capitalize()) + 20 # padding
+            
+            # Map column name to DB key
+            key_map = {
+                "date": "transaction_date",
+                "total": "total"
+            }
+            key = key_map.get(col, col)
+
+            # Measure each row
+            for t in self.transactions:
+                val = t.get(key, "")
+                # Handle None or different types
+                if val is None:
+                    text_width = 0
+                else:
+                    text_width = font.measure(str(val)) + 20
+                
+                if text_width > max_width:
+                    max_width = text_width
+            
+            # Set the column width (cap at some reasonable max if needed, e.g. 400)
+            self.tree.column(col, width=max_width)
 
     def sort_by_column(self, col):
         """Sort treeview content when a column header is clicked"""
