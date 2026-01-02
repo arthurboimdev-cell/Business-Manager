@@ -1,3 +1,5 @@
+import re
+
 
 class TransactionUtils:
     """Utility class for transaction calculations"""
@@ -61,3 +63,22 @@ class TransactionUtils:
     def filter_by_year(transactions, year):
         """Return only transactions from a specific year"""
         return [t for t in transactions if t['date'].startswith(f"{year}-")]
+
+    @staticmethod
+    def normalize_text(text: str) -> str:
+        """
+        Normalize user text:
+        - Strip leading/trailing spaces
+        - Collapse multiple spaces into one
+        - Remove tabs/newlines
+        """
+        if not text:
+            return ""
+
+        # Replace tabs/newlines with space
+        text = re.sub(r"[\t\n\r]+", " ", text)
+
+        # Collapse multiple spaces
+        text = re.sub(r"\s+", " ", text)
+
+        return text.strip()

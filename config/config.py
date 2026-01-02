@@ -28,7 +28,8 @@ TEST_TABLE = "transactions_test"
 WINDOW_TITLE = "Business Transactions Manager"
 
 # Columns to display in the treeview
-TREE_COLUMNS = ["date", "description", "quantity", "price", "type", "total"]
+TREE_COLUMNS = ["date", "description", "quantity", "price", "transaction_type", "total", "supplier"]
+
 
 # Button texts
 BUTTON_ADD = "Add Transaction"

@@ -2,9 +2,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from db.transactions import write_transaction, read_transactions
 from config.config import TABLE_NAME, TREE_COLUMNS, WINDOW_TITLE, BUTTON_ADD, BUTTON_REFRESH, BUTTON_CLEAR, TRANSACTION_TYPES
-from services.utils import TransactionUtils
 # Delete from DB
 from db.transactions import delete_transaction
+from services.utils import TransactionUtils
 
 class TransactionGUI:
     def __init__(self, master, table=TABLE_NAME):
@@ -34,10 +34,11 @@ class TransactionGUI:
         self.entry_description = self.add_labeled_entry(frame, "Description", 1)
         self.entry_quantity = self.add_labeled_entry(frame, "Quantity", 2)
         self.entry_price = self.add_labeled_entry(frame, "Price", 3)
+        self.entry_supplier = self.add_labeled_entry(frame, "Supplier", 4)  # or next available row
 
         # Transaction type radio buttons aligned left
         for i, t_type in enumerate(TRANSACTION_TYPES):
-            tk.Radiobutton(frame, text=t_type.capitalize(), variable=self.transaction_type, value=t_type).grid(row=4, column=i, sticky='w')
+            tk.Radiobutton(frame, text=t_type.capitalize(), variable=self.transaction_type, value=t_type).grid(row=5, column=i, sticky='w')
 
     def add_labeled_entry(self, parent, label_text, row):
         tk.Label(parent, text=label_text).grid(row=row, column=0, padx=5, pady=5, sticky='w')
@@ -69,6 +70,11 @@ class TransactionGUI:
         scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self.tree.yview)
         scrollbar.grid(row=0, column=1, sticky='ns')
         self.tree.configure(yscroll=scrollbar.set)
+        style = ttk.Style()
+        style.configure(
+            "Treeview",
+            rowheight=30  # try 35–50
+        )
 
         # Set headings and left-align columns
         for col in TREE_COLUMNS:
@@ -87,16 +93,20 @@ class TransactionGUI:
 
     def add_transaction_gui(self):
         date = self.entry_date.get()
-        description = self.entry_description.get()
+        description = TransactionUtils.normalize_text(
+            self.entry_description.get()
+        )
+
         try:
             quantity = int(self.entry_quantity.get())
             price = float(self.entry_price.get())
+            supplier = TransactionUtils.normalize_text(self.entry_supplier.get())
         except ValueError:
             messagebox.showerror("Error", "Quantity must be integer, Price must be number")
             return
         t_type = self.transaction_type.get()
 
-        write_transaction(date, description, quantity, price, t_type, table=self.table)
+        write_transaction(date, description, quantity, price, t_type, supplier=supplier, table=self.table)
         #messagebox.showinfo("Success", "Transaction added!")
         self.clear_entries()
         self.refresh_transactions()
@@ -149,7 +159,8 @@ class TransactionGUI:
                 t['quantity'],
                 float(t['price']),  # convert Decimal to float
                 t['transaction_type'],
-                float(t['total'])
+                float(t['total']),
+                t['supplier']
             ))
 
         summary = TransactionUtils.calculate_summary(self.transactions)
@@ -220,7 +231,7 @@ class TransactionGUI:
 
         for t in self.transactions:
             self.tree.insert('', 'end', values=(
-                t['date'], t['description'], t['quantity'], t['price'], t['transaction_type'], float(t['total'])
+                t['date'], t['description'], t['quantity'], t['price'], t['transaction_type'], float(t['total'], t['supplier'])
             ))
 
         from services.utils import TransactionUtils

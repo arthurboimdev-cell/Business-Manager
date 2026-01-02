@@ -23,24 +23,25 @@ def clean_table():
     cursor.close()
     conn.close()
 
-
 # ---------------- TESTS ----------------
 
 def test_write_and_read_transactions():
-    """Test basic write and read"""
-    write_transaction('2025-01-05', 'Wax 464-45', 17, 12.50, 'expense', table=TEST_TABLE)
-    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', table=TEST_TABLE)
+    """Test basic write and read with supplier"""
+    write_transaction('2025-01-05', 'Wax 464-45', 17, 12.50, 'expense', supplier="Supplier A", table=TEST_TABLE)
+    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', supplier="Supplier B", table=TEST_TABLE)
 
     rows = read_transactions(table=TEST_TABLE)
     assert len(rows) == 2
-    assert rows[0]['description'] == 'Candle Sale - Vanilla'  # Last inserted first
+    assert rows[0]['description'] == 'Candle Sale - Vanilla'
+    assert rows[0]['supplier'] == 'Supplier B'
     assert rows[1]['description'] == 'Wax 464-45'
+    assert rows[1]['supplier'] == 'Supplier A'
 
 
 def test_total_income_and_expense():
     """Check total income and expense calculations"""
-    write_transaction('2025-01-05', 'Wax 464-45', 17, 12.50, 'expense', table=TEST_TABLE)
-    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', table=TEST_TABLE)
+    write_transaction('2025-01-05', 'Wax 464-45', 17, 12.50, 'expense', supplier="Supplier A", table=TEST_TABLE)
+    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', supplier="Supplier B", table=TEST_TABLE)
 
     rows = read_transactions(table=TEST_TABLE)
     total_income = float(sum(r['total'] for r in rows if r['transaction_type'] == 'income'))
@@ -52,8 +53,8 @@ def test_total_income_and_expense():
 
 def test_balance_calculation():
     """Test balance = income - expenses"""
-    write_transaction('2025-01-05', 'Wax 464-45', 17, 12.50, 'expense', table=TEST_TABLE)
-    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', table=TEST_TABLE)
+    write_transaction('2025-01-05', 'Wax 464-45', 17, 12.50, 'expense', supplier="Supplier A", table=TEST_TABLE)
+    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', supplier="Supplier B", table=TEST_TABLE)
 
     rows = read_transactions(table=TEST_TABLE)
     total_income = float(sum(r['total'] for r in rows if r['transaction_type'] == 'income'))
@@ -65,8 +66,8 @@ def test_balance_calculation():
 
 def test_total_sold_units_and_avg_price():
     """Test total units sold and average price per unit"""
-    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', table=TEST_TABLE)
-    write_transaction('2025-01-12', 'Candle Sale - Chocolate', 5, 30.00, 'income', table=TEST_TABLE)
+    write_transaction('2025-01-10', 'Candle Sale - Vanilla', 10, 25.00, 'income', supplier="Supplier B", table=TEST_TABLE)
+    write_transaction('2025-01-12', 'Candle Sale - Chocolate', 5, 30.00, 'income', supplier="Supplier C", table=TEST_TABLE)
 
     rows = read_transactions(table=TEST_TABLE)
     sold_units = sum(r['quantity'] for r in rows if r['transaction_type'] == 'income')
@@ -79,7 +80,7 @@ def test_total_sold_units_and_avg_price():
 
 def test_only_expenses():
     """Test table with only expenses"""
-    write_transaction('2025-01-15', 'Wax Refill', 5, 20.00, 'expense', table=TEST_TABLE)
+    write_transaction('2025-01-15', 'Wax Refill', 5, 20.00, 'expense', supplier="Supplier A", table=TEST_TABLE)
 
     rows = read_transactions(table=TEST_TABLE)
     total_income = float(sum(r['total'] for r in rows if r['transaction_type'] == 'income'))
@@ -91,7 +92,7 @@ def test_only_expenses():
 
 def test_only_income():
     """Test table with only income"""
-    write_transaction('2025-01-20', 'Candle Sale - Lemon', 8, 15.00, 'income', table=TEST_TABLE)
+    write_transaction('2025-01-20', 'Candle Sale - Lemon', 8, 15.00, 'income', supplier="Supplier B", table=TEST_TABLE)
 
     rows = read_transactions(table=TEST_TABLE)
     total_income = float(sum(r['total'] for r in rows if r['transaction_type'] == 'income'))

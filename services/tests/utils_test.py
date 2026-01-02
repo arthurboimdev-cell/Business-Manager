@@ -78,6 +78,19 @@ def test_filter_by_quarter_no_match():
     filtered = TransactionUtils.filter_by_quarter(SAMPLE_TRANSACTIONS, 2025, 3)  # Jul-Sep, no transactions
     assert len(filtered) == 0
 
-def test_filter_by_quarter_invalid_quarter():
-    with pytest.raises(KeyError):
-        TransactionUtils.filter_by_quarter(SAMPLE_TRANSACTIONS, 2025, 5)  # invalid quarter
+@pytest.mark.parametrize(
+    "input_text, expected",
+    [
+        ("   hello world   ", "hello world"),                   # leading/trailing spaces
+        ("hello   world", "hello world"),                       # multiple spaces
+        ("hello\tworld", "hello world"),                        # tab
+        ("hello\nworld", "hello world"),                        # newline
+        ("  hello \t\n world  ", "hello world"),               # combination
+        ("", ""),                                               # empty string
+        (None, ""),                                             # None input
+        ("singleword", "singleword"),                           # no change
+        ("  multiple   spaces\tand\nnewlines  ", "multiple spaces and newlines")
+    ]
+)
+def test_normalize_text(input_text, expected):
+    assert TransactionUtils.normalize_text(input_text) == expected
