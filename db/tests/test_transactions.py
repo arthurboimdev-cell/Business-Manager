@@ -100,3 +100,37 @@ def test_only_income():
 
     assert total_income == pytest.approx(120.00)
     assert total_expense == 0
+
+
+def test_delete_transaction():
+    """Test deleting a transaction"""
+    # Create a transaction
+    t_id = write_transaction('2025-01-25', 'To Delete', 1, 10.00, 'expense', table=TEST_TABLE)
+    
+    # Verify it exists
+    rows = read_transactions(table=TEST_TABLE)
+    assert len(rows) == 1
+    assert rows[0]['id'] == t_id
+    
+    # Delete it
+    from db.transactions import delete_transaction
+    delete_transaction(t_id, table=TEST_TABLE)
+    
+    # Verify it's gone
+    rows = read_transactions(table=TEST_TABLE)
+    assert len(rows) == 0
+
+
+def test_read_empty_table():
+    """Test reading from an empty table"""
+    rows = read_transactions(table=TEST_TABLE)
+    assert rows == []
+
+
+def test_invalid_table_name():
+    """Test that using an invalid table name raises ValueError"""
+    with pytest.raises(ValueError, match="Invalid table name"):
+        write_transaction('2025-01-01', 'Fail', 1, 1, 'expense', table="invalid_table")
+        
+    with pytest.raises(ValueError, match="Invalid table name"):
+        read_transactions(table="invalid_table")
