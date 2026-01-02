@@ -13,6 +13,8 @@ class TransactionGUI:
         self.master.title(WINDOW_TITLE)
         self.table = table
         self.transaction_type = tk.StringVar(value=TRANSACTION_TYPES[0])
+        self.sort_descending = False
+
 
         # Make window resizable
         self.master.rowconfigure(2, weight=1)  # Treeview row expands
@@ -78,7 +80,8 @@ class TransactionGUI:
 
         # Set headings and left-align columns
         for col in TREE_COLUMNS:
-            self.tree.heading(col, text=col.capitalize(), anchor='w')
+            self.tree.heading(col, text=col.capitalize(), anchor='w',
+                              command=lambda c=col: self.sort_by_column(c))
             self.tree.column(col, anchor='w', width=100)
 
     # ------------------- Summary Label -------------------
@@ -231,7 +234,7 @@ class TransactionGUI:
 
         for t in self.transactions:
             self.tree.insert('', 'end', values=(
-                t['date'], t['description'], t['quantity'], t['price'], t['transaction_type'], float(t['total'], t['supplier'])
+                t['transaction_date'], t['description'], t['quantity'], t['price'], t['transaction_type'], float(t['total']), t['supplier']
             ))
 
         from services.utils import TransactionUtils
@@ -244,6 +247,48 @@ class TransactionGUI:
             summary['total_sold_units'],
             summary['avg_price_per_unit']
         )
+
+    def sort_by_column(self, col):
+        """Sort treeview content when a column header is clicked"""
+        # Map column name to DB key if different
+        key_map = {
+            "date": "transaction_date",
+            "total": "total" 
+        }
+        key = key_map.get(col, col)
+
+        # check if we are sorting the same column
+        if hasattr(self, 'last_sorted_col') and self.last_sorted_col == col:
+             # Toggle sort direction if same column
+            self.sort_descending = not self.sort_descending
+        else:
+            # Reset to ascending if new column
+            self.sort_descending = False
+            self.last_sorted_col = col
+
+        # Sort the data list
+        # Handle numeric sorting vs string sorting
+        def sort_key(x):
+            val = x[key]
+            # Ensure we handle None values safely if they exist
+            if val is None:
+                return 0 if key in ["quantity", "price", "total"] else ""
+                
+            if key in ["quantity", "price", "total"]:
+                return float(val)
+            return str(val).lower()
+
+        self.transactions.sort(key=sort_key, reverse=self.sort_descending)
+
+        # Update the UI
+        self.refresh_tree_and_summary()
+        
+        # Update arrow indicator
+        arrow = "▼" if self.sort_descending else "▲"
+        for c in TREE_COLUMNS:
+            self.tree.heading(c, text=c.capitalize()) # Reset others
+        self.tree.heading(col, text=f"{col.capitalize()} {arrow}")
+
 
 
 # ------------------- Root Launcher -------------------
