@@ -4,9 +4,19 @@ import os
 
 MAIN_FILE = "main.py"
 
+def get_python_executable():
+    """Get the python executable to use. Prioritizes .venv if found."""
+    # Check for .venv in current directory
+    venv_python = os.path.join(os.getcwd(), ".venv", "Scripts", "python.exe")
+    if os.path.exists(venv_python):
+        return venv_python
+    return sys.executable
+
+PYTHON_EXE = get_python_executable()
+
 def run_tests():
     print("Running all tests...")
-    result = subprocess.run([sys.executable, "-m", "pytest", "-v"])
+    result = subprocess.run([PYTHON_EXE, "-m", "pytest", "-v"])
     return result.returncode == 0
 
 def replace_table_name(new_table):
@@ -24,12 +34,18 @@ def replace_table_name(new_table):
 
 def build_executable():
     print("Building executable...")
-    subprocess.run([sys.executable, "-m", "PyInstaller", "--onefile", MAIN_FILE], check=True)
+    subprocess.run([
+        PYTHON_EXE, "-m", "PyInstaller", 
+        "--onefile", 
+        "--noconsole",
+        "--add-data", "config/local.env;config", 
+        MAIN_FILE
+    ], check=True)
     print("Executable built in dist/ folder.")
 
 def main():
     if run_tests():
-        print("All tests passed ✅")
+        print("All tests passed")
 
         # Temporarily switch to production table
         replace_table_name("TABLE_NAME")
@@ -39,7 +55,7 @@ def main():
             # Restore back to test table
             replace_table_name("TEST_TABLE")
     else:
-        print("Some tests failed ❌. Aborting build.")
+        print("Some tests failed. Aborting build.")
 
 if __name__ == "__main__":
     main()
