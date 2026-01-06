@@ -86,6 +86,8 @@ class TransactionController:
                 t['supplier']
             )
             self.tree_frame.insert(row_values)
+        
+        self.tree_frame.autosize_columns()
 
         # Update Summary
         summary = TransactionUtils.calculate_summary(display_transactions)

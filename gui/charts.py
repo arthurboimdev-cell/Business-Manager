@@ -7,9 +7,6 @@ import services.utils as utils
 class AnalyticsFrame(tb.Frame):
     def __init__(self, parent):
         super().__init__(parent, padding=10)
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-        self.rowconfigure(0, weight=1)
 
         # Matplotlib Figures
         self.fig_pie = Figure(figsize=(5, 4), dpi=100)
@@ -20,10 +17,10 @@ class AnalyticsFrame(tb.Frame):
 
         # Canvas
         self.canvas_pie = FigureCanvasTkAgg(self.fig_pie, self)
-        self.canvas_pie.get_tk_widget().grid(row=0, column=0, sticky='nsew', padx=5, pady=5)
+        self.canvas_pie.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         self.canvas_bar = FigureCanvasTkAgg(self.fig_bar, self)
-        self.canvas_bar.get_tk_widget().grid(row=0, column=1, sticky='nsew', padx=5, pady=5)
+        self.canvas_bar.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
     def refresh_charts(self, transactions):
         self.ax_pie.clear()

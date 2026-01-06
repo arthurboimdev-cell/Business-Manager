@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.font
 from tkinter import ttk, messagebox, filedialog
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
@@ -154,6 +155,27 @@ class TreeFrame(tb.Frame):
 
     def insert(self, values):
         self.tree.insert('', 'end', values=values)
+
+    def autosize_columns(self):
+        """Automatically adjust column widths based on content"""
+        # Dictionary to store max width for each column (start with header width)
+        col_widths = {}
+        for col in self.tree['columns']:
+            col_widths[col] = tk.font.Font().measure(col.title()) + 20
+
+        # Iterate through all items to find max width
+        for item in self.tree.get_children():
+            values = self.tree.item(item, 'values')
+            for i, col in enumerate(self.tree['columns']):
+                # Measure text width
+                val_width = tk.font.Font().measure(str(values[i])) + 20
+                if val_width > col_widths[col]:
+                    col_widths[col] = val_width
+
+        # Apply new widths
+        for col, width in col_widths.items():
+            # Cap width at 400 to prevent overly wide columns
+            self.tree.column(col, width=min(width, 400))
 
 class SummaryFrame(tb.Frame):
     def __init__(self, parent):

@@ -1,61 +1,66 @@
 import pytest
-import tkinter.font as tkfont
+import tkinter as tk
 from unittest.mock import MagicMock, patch
-from gui.GUI import TransactionGUI
+from gui.views import TreeFrame
 
-def test_autosize_columns(tk_root):
-    """Test that columns are resized based on content length"""
+@pytest.fixture
+def mock_callbacks():
+    return {
+        'on_delete': MagicMock(),
+        'on_edit': MagicMock(),
+        'on_search': MagicMock(),
+        'on_export': MagicMock()
+    }
+
+def test_autosize_columns(tk_root, mock_callbacks):
+    """Test that columns are resized based on content length using TreeFrame"""
     
-    # 1. Setup mock data
-    mock_transactions = [
-        {"transaction_date": "2024-01-01", "description": "Short", "price": 10.0, "quantity": 1, "total": 10.0, "transaction_type": "expense", "supplier": "A"},
-        {"transaction_date": "2024-01-02", "description": "A Very Long Description Indeed", "price": 100000.0, "quantity": 100, "total": 100000.0, "transaction_type": "income", "supplier": "B"},
-    ]
-
-    # 2. Patch font measurement to return length of string
-    # This simulates a font where 1 char = 10 pixels for simplicity
+    # 1. Setup Data
+    columns = ["date", "description", "price"]
+    
+    # 2. Initialize TreeFrame
+    # We need a parent. tk_root works.
+    frame = TreeFrame(
+        tk_root, 
+        columns, 
+        mock_callbacks['on_delete'], 
+        mock_callbacks['on_edit'], 
+        mock_callbacks['on_search'], 
+        mock_callbacks['on_export']
+    )
+    
+    # 3. Insert Data
+    # Row 1: Short description
+    frame.insert(("2024-01-01", "Short", "10.0"))
+    # Row 2: Long description
+    frame.insert(("2024-01-02", "A Very Long Description Indeed", "100.0"))
+    
+    # 4. Patch Font measurement
+    # Logic: string length * 10 pixels
     def mock_measure(text):
-        return len(text) * 10
+        if text is None: return 0
+        return len(str(text)) * 10
 
-    with patch("tkinter.font.nametofont") as mock_font_cls:
-        mock_font = MagicMock()
-        mock_font.measure.side_effect = mock_measure
-        mock_font_cls.return_value = mock_font
+    # We patch tk.font.Font so that Font().measure calls our mock
+    with patch("tkinter.font.Font") as mock_font_cls:
+        mock_font_instance = MagicMock()
+        mock_font_instance.measure.side_effect = mock_measure
+        mock_font_cls.return_value = mock_font_instance
         
-        # 3. Initialize GUI with mocked reading
-        with patch("gui.GUI.read_transactions", return_value=mock_transactions):
-            gui = TransactionGUI(tk_root) # calling init triggers refresh -> autosize
-            
-            # 4. Check width of 'description' column
-            # Header "Description" len=11 -> 110px + 20pad = 130
-            # Row 1 "Short" len=5 -> 50px + 20pad = 70
-            # Row 2 "A Very Long Description Indeed" len=30 -> 300px + 20pad = 320
-            # Expected width = 320
-            
-            # We need to spy on tree.column calls or inspect the tree
-            # Tkinter tree.column returns a dict of options if no option specified, 
-            # but we can just check the last call to column('description') if we mock the tree or just inspect it.
-            
-            # Since we are using a real treeview (via tk_root), we can actually query it!
-            # However, in a unit test with mocked font, checking the *call* to width is safer.
-            
-            # Let's verify expectations based on our mock_measure:
-            # "Description" header: 11 chars * 10 = 110 + 20 = 130
-            # Longest value: 30 chars * 10 = 300 + 20 = 320
-            # So width should be 320.
-            
-            col_opts = gui.tree.column("description")
-            # In unit tests with real Tk, the width might be constrained or default, 
-            # but let's check if our logic ran.
-            
-            # Ideally we check the width. 
-            # Note: tree.column('col')['width'] returns the current width.
-            
-            assert gui.tree.column("description", "width") == 320
-            
-            # Check 'transaction_type'
-            # Header "Transaction_type" -> 160 + 20 = 180
-            # Value "expense" -> 70+20=90
-            # Value "income" -> 60+20=80
-            # Expected: 180 (Header is wider)
-            assert gui.tree.column("transaction_type", "width") == 180
+        # 5. Call Autosize
+        frame.autosize_columns()
+        
+        # 6. Verify Column Widths
+        # Formula in code: measure(text) + 20
+        
+        # Column "description"
+        # Header "Description" (11 chars) -> 110 + 20 = 130
+        # Row 2 value (30 chars) -> 300 + 20 = 320
+        # Expected max: 320
+        assert frame.tree.column("description", "width") == 320
+        
+        # Column "date"
+        # Header "Date" (4 chars) -> 40 + 20 = 60
+        # Value "2024-01-01" (10 chars) -> 100 + 20 = 120
+        # Expected max: 120
+        assert frame.tree.column("date", "width") == 120
