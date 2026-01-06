@@ -87,8 +87,9 @@ class InputFrame(tb.Frame):
 
 
 class TreeFrame(tb.Frame):
-    def __init__(self, parent, columns, on_delete, on_edit, on_search, on_export, on_sort):
+    def __init__(self, parent, columns, on_delete, on_edit, on_search, on_export, on_sort, features=None):
         super().__init__(parent, padding=10)
+        self.features = features or {}
         self.on_delete = on_delete
         self.on_edit = on_edit
         self.on_search = on_search
@@ -101,14 +102,16 @@ class TreeFrame(tb.Frame):
         toolbar.pack(fill='x', pady=(0, 10))
 
         # Search
-        self.search_var = tk.StringVar()
-        tb.Label(toolbar, text="Search:").pack(side='left', padx=5)
-        self.entry_search = tb.Entry(toolbar, textvariable=self.search_var)
-        self.entry_search.pack(side='left', padx=5)
-        self.entry_search.bind("<KeyRelease>", lambda e: self._handle_search())
+        if self.features.get("search", True):
+            self.search_var = tk.StringVar()
+            tb.Label(toolbar, text="Search:").pack(side='left', padx=5)
+            self.entry_search = tb.Entry(toolbar, textvariable=self.search_var)
+            self.entry_search.pack(side='left', padx=5)
+            self.entry_search.bind("<KeyRelease>", lambda e: self._handle_search())
 
         # Export
-        tb.Button(toolbar, text=UI_BUTTONS["export"], bootstyle="success-outline", command=self.on_export).pack(side='right', padx=5)
+        if self.features.get("export_csv", True):
+            tb.Button(toolbar, text=UI_BUTTONS["export"], bootstyle="success-outline", command=self.on_export).pack(side='right', padx=5)
 
         # -- Treeview --
         self.tree = tb.Treeview(self, columns=columns, show='headings', bootstyle="primary")
@@ -203,4 +206,7 @@ class MainWindow(tb.Window):
         # Tab 2: Analytics
         self.tab_analytics = tb.Frame(self.notebook)
         self.notebook.add(self.tab_analytics, text="Analytics")
+
+    def hide_analytics_tab(self):
+        self.notebook.forget(self.tab_analytics)
 

@@ -1,0 +1,7 @@
+{
+    "analytics": true,
+    "export_csv": true,
+    "search": true,
+    "summary_stats": true,
+    "dark_mode_toggle": true
+}

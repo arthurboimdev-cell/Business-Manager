@@ -4,7 +4,7 @@ from services.data_service import DataService
 from gui.models import TransactionModel
 from gui.views import MainWindow, InputFrame, TreeFrame, SummaryFrame
 from gui.charts import AnalyticsFrame
-from config.config import TREE_COLUMNS, TRANSACTION_TYPES, WINDOW_TITLE
+from config.config import TREE_COLUMNS, TRANSACTION_TYPES, WINDOW_TITLE, FEATURES
 
 class TransactionController:
     def __init__(self, table_name):
@@ -28,16 +28,24 @@ class TransactionController:
             on_edit=self.prep_edit_transaction,
             on_search=self.filter_transactions,
             on_export=self.export_csv,
-            on_sort=self.sort_transactions
+            on_sort=self.sort_transactions,
+            features=FEATURES
         )
         self.tree_frame.pack(fill='both', expand=True, padx=10, pady=5)
 
-        self.summary_frame = SummaryFrame(self.view.tab_transactions)
-        self.summary_frame.pack(fill='x', padx=10, pady=5)
+        if FEATURES.get("summary_stats", True):
+            self.summary_frame = SummaryFrame(self.view.tab_transactions)
+            self.summary_frame.pack(fill='x', padx=10, pady=5)
+        else:
+            self.summary_frame = None
 
         # --- Tab 2: Analytics ---
-        self.analytics_frame = AnalyticsFrame(self.view.tab_analytics)
-        self.analytics_frame.pack(fill='both', expand=True, padx=10, pady=10)
+        if FEATURES.get("analytics", True):
+            self.analytics_frame = AnalyticsFrame(self.view.tab_analytics)
+            self.analytics_frame.pack(fill='both', expand=True, padx=10, pady=10)
+        else:
+            self.view.hide_analytics_tab()
+            self.analytics_frame = None
 
         # UI State
         self.current_search_query = ""
@@ -120,10 +128,12 @@ class TransactionController:
             f"Balance: {summary['balance']:.2f}  |  "
             f"Units Sold: {summary['total_sold_units']}"
         )
-        self.summary_frame.update_summary(summary_text)
+        if self.summary_frame:
+            self.summary_frame.update_summary(summary_text)
 
         # Update Charts (Always use All Transactions or Filtered? Ideally Filtered matches view)
-        self.analytics_frame.refresh_charts(display_transactions)
+        if self.analytics_frame:
+            self.analytics_frame.refresh_charts(display_transactions)
 
 
     def sort_transactions(self, col):

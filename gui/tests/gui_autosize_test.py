@@ -27,7 +27,8 @@ def test_autosize_columns(tk_root, mock_callbacks):
         mock_callbacks['on_edit'], 
         mock_callbacks['on_search'], 
         mock_callbacks['on_export'],
-        lambda x: None
+        lambda x: None,
+        features={}
     )
     
     # 3. Insert Data

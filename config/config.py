@@ -10,6 +10,7 @@ load_dotenv(env_path)
 # --- Load JSON Configuration ---
 # Config is now inside the config folder, same as this script
 CONFIG_PATH = Path(__file__).parent / 'config.json'
+FEATURES_PATH = Path(__file__).parent / 'features.json'
 
 config_from_json = {}
 if CONFIG_PATH.exists():
@@ -18,6 +19,21 @@ if CONFIG_PATH.exists():
             config_from_json = json.load(f)
     except Exception as e:
         print(f"Warning: Could not load config.json: {e}")
+
+features_config = {
+    "analytics": True,
+    "export_csv": True,
+    "search": True,
+    "summary_stats": True,
+    "dark_mode_toggle": True
+}
+if FEATURES_PATH.exists():
+    try:
+        with open(FEATURES_PATH, 'r') as f:
+            features = json.load(f)
+            features_config.update(features)
+    except Exception as e:
+        print(f"Warning: Could not load features.json: {e}")
 
 # Determine Database Name
 # 1. Check if JSON defines a specific env var to use
@@ -83,3 +99,5 @@ BUTTON_CLEAR = config_data["ui"]["buttons"].get("clear", "Clear Entries")
 # Labels (New dictionary to access from views)
 UI_LABELS = config_data["ui"]["labels"]
 UI_BUTTONS = config_data["ui"]["buttons"]
+FEATURES = features_config
+FEATURES = features_config
