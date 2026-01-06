@@ -4,17 +4,31 @@ from db.db_connection import get_db_connection
 
 TEST_TABLE = "transactions_test"
 
+from db.init_db import init_db
+
 # ---------------- FIXTURE: clean table before each test ----------------
 @pytest.fixture(autouse=True)
 def clean_table():
-    """Delete all rows from the test table before each test"""
+    """Recreate the test table before each test to ensure schema matches config"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute(f"DELETE FROM {TEST_TABLE}")
+    cursor.execute(f"DROP TABLE IF EXISTS {TEST_TABLE}")
     conn.commit()
     cursor.close()
     conn.close()
+    
+    init_db(TEST_TABLE)
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"DELETE FROM {TEST_TABLE}")
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
     yield
+    # Cleanup covered by next run's drop/init or just leave it
     # Optional cleanup after test
     conn = get_db_connection()
     cursor = conn.cursor()
