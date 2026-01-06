@@ -27,7 +27,8 @@ class TransactionController:
             on_delete=self.prompt_delete_transaction,
             on_edit=self.prep_edit_transaction,
             on_search=self.filter_transactions,
-            on_export=self.export_csv
+            on_export=self.export_csv,
+            on_sort=self.sort_transactions
         )
         self.tree_frame.pack(fill='both', expand=True, padx=10, pady=5)
 
@@ -40,6 +41,20 @@ class TransactionController:
 
         # UI State
         self.current_search_query = ""
+        # Default sort: Date Descending
+        self.sort_col = "date"
+        self.sort_reverse = True
+
+        # Map UI columns to DB/Model keys
+        self.COLUMN_MAP = {
+            "date": "transaction_date",
+            "description": "description",
+            "quantity": "quantity",
+            "price": "price",
+            "type": "transaction_type",
+            "supplier": "supplier",
+            "total": "total"
+        }
 
         # Initial Load
         self.refresh_ui()
@@ -73,6 +88,14 @@ class TransactionController:
         else:
             display_transactions = all_transactions
 
+        # Sort
+        if self.sort_col:
+            sort_key = self.COLUMN_MAP.get(self.sort_col, self.sort_col)
+            display_transactions.sort(
+                key=lambda x: x[sort_key] if x[sort_key] is not None else "",
+                reverse=self.sort_reverse
+            )
+
         self.tree_frame.clear()
         
         for t in display_transactions:
@@ -101,6 +124,16 @@ class TransactionController:
 
         # Update Charts (Always use All Transactions or Filtered? Ideally Filtered matches view)
         self.analytics_frame.refresh_charts(display_transactions)
+
+
+    def sort_transactions(self, col):
+        if self.sort_col == col:
+            self.sort_reverse = not self.sort_reverse
+        else:
+            self.sort_col = col
+            self.sort_reverse = False
+        
+        self.refresh_ui()
 
 
     def add_transaction(self, data):

@@ -87,12 +87,14 @@ class InputFrame(tb.Frame):
 
 
 class TreeFrame(tb.Frame):
-    def __init__(self, parent, columns, on_delete, on_edit, on_search, on_export):
+    def __init__(self, parent, columns, on_delete, on_edit, on_search, on_export, on_sort):
         super().__init__(parent, padding=10)
         self.on_delete = on_delete
         self.on_edit = on_edit
         self.on_search = on_search
+        self.on_search = on_search
         self.on_export = on_export
+        self.on_sort = on_sort
 
         # -- Toolbar --
         toolbar = tb.Frame(self)
@@ -101,7 +103,9 @@ class TreeFrame(tb.Frame):
         # Search
         self.search_var = tk.StringVar()
         tb.Label(toolbar, text="Search:").pack(side='left', padx=5)
-        tb.Entry(toolbar, textvariable=self.search_var).pack(side='left', padx=5)
+        self.entry_search = tb.Entry(toolbar, textvariable=self.search_var)
+        self.entry_search.pack(side='left', padx=5)
+        self.entry_search.bind("<KeyRelease>", lambda e: self._handle_search())
         tb.Button(toolbar, text=UI_BUTTONS["filter"], bootstyle="info-outline", command=self._handle_search).pack(side='left', padx=5)
         tb.Button(toolbar, text=UI_BUTTONS["reset"], bootstyle="secondary-outline", command=self._handle_reset).pack(side='left', padx=5)
 
@@ -117,7 +121,7 @@ class TreeFrame(tb.Frame):
         scrollbar.pack(side='right', fill='y')
 
         for col in columns:
-            self.tree.heading(col, text=col.capitalize())
+            self.tree.heading(col, text=col.capitalize(), command=lambda c=col: self.on_sort(c))
             self.tree.column(col, width=100)
 
         # Context Menu

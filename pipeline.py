@@ -34,6 +34,9 @@ def replace_table_name(new_table):
 
 def build_executable():
     print("Building executable...")
+    # Kill existing process if running to avoid PermissionError
+    subprocess.run(["taskkill", "/F", "/IM", "main.exe"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
     subprocess.run([
         PYTHON_EXE, "-m", "PyInstaller", 
         "--onefile", 
