@@ -3,3 +3,4 @@ mysql-connector-python
 pytest
 pyinstaller
 ttkbootstrap
+matplotlib

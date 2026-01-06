@@ -1,8 +1,9 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from config.config import TREE_COLUMNS, TRANSACTION_TYPES, BUTTON_ADD, BUTTON_REFRESH, BUTTON_CLEAR
+from gui.charts import AnalyticsFrame
 
 class InputFrame(tb.Frame):
     def __init__(self, parent, transaction_types, on_add, on_clear, on_update):
@@ -10,19 +11,16 @@ class InputFrame(tb.Frame):
         self.on_add = on_add
         self.on_clear = on_clear
         self.on_update = on_update
-        self.current_edit_id = None  # If not None, we are in Edit mode
+        self.current_edit_id = None
 
-        # Grid Layout
         self.columnconfigure(1, weight=1)
 
-        # Fields
         self.create_field("Date (YYYY-MM-DD):", 0, "date")
         self.create_field("Description:", 1, "desc")
         self.create_field("Quantity:", 2, "qty")
         self.create_field("Price:", 3, "price")
         self.create_field("Supplier:", 4, "supplier")
 
-        # Type (Radio)
         self.type_var = tk.StringVar(value=transaction_types[0])
         lbl = tb.Label(self, text="Type:")
         lbl.grid(row=5, column=0, sticky='w', pady=5)
@@ -32,7 +30,6 @@ class InputFrame(tb.Frame):
         for t_type in transaction_types:
             tb.Radiobutton(radio_frame, text=t_type.capitalize(), variable=self.type_var, value=t_type).pack(side='left', padx=5)
 
-        # Buttons
         btn_frame = tb.Frame(self)
         btn_frame.grid(row=6, column=0, columnspan=2, pady=15, sticky='w')
 
@@ -71,15 +68,12 @@ class InputFrame(tb.Frame):
         self.entry_price.delete(0, tk.END)
         self.entry_supplier.delete(0, tk.END)
         self.type_var.set(TRANSACTION_TYPES[0])
-        
-        # Exit edit mode
         self.current_edit_id = None
         self.btn_add.configure(text=BUTTON_ADD, bootstyle="success")
 
     def load_for_editing(self, t_id, data):
         self.clear_fields()
         self.current_edit_id = t_id
-        
         self.entry_date.insert(0, data['transaction_date'])
         self.entry_desc.insert(0, data['description'])
         self.entry_qty.insert(0, str(data['quantity']))
@@ -87,20 +81,33 @@ class InputFrame(tb.Frame):
         if data.get('supplier'):
             self.entry_supplier.insert(0, data['supplier'])
         self.type_var.set(data['transaction_type'])
-
         self.btn_add.configure(text="Update Transaction", bootstyle="warning")
 
 
 class TreeFrame(tb.Frame):
-    def __init__(self, parent, columns, on_delete, on_edit):
+    def __init__(self, parent, columns, on_delete, on_edit, on_search, on_export):
         super().__init__(parent, padding=10)
         self.on_delete = on_delete
         self.on_edit = on_edit
+        self.on_search = on_search
+        self.on_export = on_export
 
-        # Treeview
+        # -- Toolbar --
+        toolbar = tb.Frame(self)
+        toolbar.pack(fill='x', pady=(0, 10))
+
+        # Search
+        self.search_var = tk.StringVar()
+        tb.Label(toolbar, text="Search:").pack(side='left', padx=5)
+        tb.Entry(toolbar, textvariable=self.search_var).pack(side='left', padx=5)
+        tb.Button(toolbar, text="Filter", bootstyle="info-outline", command=self._handle_search).pack(side='left', padx=5)
+        tb.Button(toolbar, text="Reset", bootstyle="secondary-outline", command=self._handle_reset).pack(side='left', padx=5)
+
+        # Export
+        tb.Button(toolbar, text="Export CSV", bootstyle="success-outline", command=self.on_export).pack(side='right', padx=5)
+
+        # -- Treeview --
         self.tree = tb.Treeview(self, columns=columns, show='headings', bootstyle="primary")
-        
-        # Scrollbar
         scrollbar = tb.Scrollbar(self, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
         
@@ -116,6 +123,14 @@ class TreeFrame(tb.Frame):
         self.menu.add_command(label="Edit", command=self._handle_edit)
         self.menu.add_command(label="Delete", command=self._handle_delete)
         self.tree.bind("<Button-3>", self.show_context_menu)
+
+    def _handle_search(self):
+        query = self.search_var.get()
+        self.on_search(query)
+
+    def _handle_reset(self):
+        self.search_var.set("")
+        self.on_search("")
 
     def show_context_menu(self, event):
         item = self.tree.identify_row(event.y)
@@ -140,7 +155,6 @@ class TreeFrame(tb.Frame):
     def insert(self, values):
         self.tree.insert('', 'end', values=values)
 
-
 class SummaryFrame(tb.Frame):
     def __init__(self, parent):
         super().__init__(parent, padding=10, bootstyle="info")
@@ -155,4 +169,17 @@ class MainWindow(tb.Window):
     def __init__(self, title, theme="superhero"):
         super().__init__(themename=theme)
         self.title(title)
-        self.geometry("1000x700")
+        self.geometry("1100x800")
+        
+        # Tabs
+        self.notebook = tb.Notebook(self)
+        self.notebook.pack(fill='both', expand=True, padx=10, pady=10)
+
+        # Tab 1: Transactions
+        self.tab_transactions = tb.Frame(self.notebook)
+        self.notebook.add(self.tab_transactions, text="Transactions")
+
+        # Tab 2: Analytics
+        self.tab_analytics = tb.Frame(self.notebook)
+        self.notebook.add(self.tab_analytics, text="Analytics")
+

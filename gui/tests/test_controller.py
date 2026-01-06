@@ -4,18 +4,29 @@ from gui.controller import TransactionController
 
 @pytest.fixture
 def mock_view():
-    with patch('gui.controller.MainWindow') as mock_window:
-        with patch('gui.controller.InputFrame') as mock_input:
-            with patch('gui.controller.TreeFrame') as mock_tree:
-                with patch('gui.controller.SummaryFrame') as mock_summary:
-                    with patch('gui.controller.messagebox') as mock_mb:
-                        yield {
-                            'window': mock_window,
-                            'input': mock_input,
-                            'tree': mock_tree,
-                            'summary': mock_summary,
-                            'mb': mock_mb
-                        }
+    with patch('gui.controller.MainWindow') as mock_window_cls:
+        with patch('gui.controller.InputFrame') as mock_input_cls:
+            with patch('gui.controller.TreeFrame') as mock_tree_cls:
+                with patch('gui.controller.SummaryFrame') as mock_summary_cls:
+                    with patch('gui.controller.AnalyticsFrame') as mock_analytics_cls:
+                        with patch('gui.controller.messagebox') as mock_mb:
+                            with patch('gui.controller.filedialog') as mock_fd:
+                                # Setup mock instance
+                                mock_window = mock_window_cls.return_value
+                                
+                                # Mock the tabs (Frames)
+                                mock_window.tab_transactions = MagicMock()
+                                mock_window.tab_analytics = MagicMock()
+                                
+                                yield {
+                                    'window': mock_window,
+                                    'input': mock_input_cls,
+                                    'tree': mock_tree_cls,
+                                    'summary': mock_summary_cls,
+                                    'analytics': mock_analytics_cls,
+                                    'mb': mock_mb,
+                                    'fd': mock_fd
+                                        }
 
 @pytest.fixture
 def mock_model():
@@ -31,6 +42,7 @@ def test_controller_initialization(mock_view, mock_model):
     mock_view['input'].assert_called()
     mock_view['tree'].assert_called()
     mock_view['summary'].assert_called()
+    mock_view['analytics'].assert_called()
 
 def test_add_transaction_success(mock_view, mock_model):
     controller = TransactionController("test_table")
@@ -118,3 +130,48 @@ def test_prep_edit_transaction_not_found(mock_view, mock_model):
     
     controller.input_frame.load_for_editing.assert_not_called()
     mock_view['mb'].showerror.assert_called()
+
+def test_filter_transactions(mock_view, mock_model):
+    controller = TransactionController("test_table")
+    
+    # Mock data
+    t1 = {'id': 1, 'description': 'Apple', 'supplier': 'Farm A', 'transaction_date': '2025', 'quantity': 1, 'price': 1, 'transaction_type': 'income', 'total': 1}
+    t2 = {'id': 2, 'description': 'Banana', 'supplier': 'Farm B', 'transaction_date': '2025', 'quantity': 1, 'price': 1, 'transaction_type': 'income', 'total': 1}
+    mock_model.get_all_transactions.return_value = [t1, t2]
+    
+    # 1. Filter "Apple"
+    controller.filter_transactions("Apple")
+    # Should insert 1 item
+    assert controller.tree_frame.insert.call_count == 1
+    
+    # 2. Filter "Farm" (matches both)
+    controller.tree_frame.insert.reset_mock()
+    controller.filter_transactions("Farm")
+    assert controller.tree_frame.insert.call_count == 2
+    
+    # 3. Filter "Zucchini" (matches none)
+    controller.tree_frame.insert.reset_mock()
+    controller.filter_transactions("Zucchini")
+    assert controller.tree_frame.insert.call_count == 0
+
+def test_export_csv_cancel(mock_view, mock_model):
+    controller = TransactionController("test_table")
+    
+    # Mock file dialog returning None/Empty
+    mock_view['fd'].asksaveasfilename.return_value = ""
+    
+    with patch('services.data_service.DataService.export_to_csv') as mock_export:
+        controller.export_csv()
+        mock_export.assert_not_called()
+
+def test_export_csv_success(mock_view, mock_model):
+    controller = TransactionController("test_table")
+    
+    # Mock file dialog returning path
+    mock_view['fd'].asksaveasfilename.return_value = "C:/test.csv"
+    mock_model.get_all_transactions.return_value = [{'id':1}]
+    
+    with patch('services.data_service.DataService.export_to_csv') as mock_export:
+        controller.export_csv()
+        mock_export.assert_called_with("C:/test.csv", [{'id':1}])
+        mock_view['mb'].showinfo.assert_called()
