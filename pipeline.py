@@ -26,8 +26,8 @@ def replace_table_name(new_table):
 
     with open(MAIN_FILE, "w", encoding="utf-8") as f:
         for line in lines:
-            if "start_gui(" in line:
-                f.write(f"    start_gui({new_table})\n")
+            if "app = TransactionController(" in line:
+                f.write(f"    app = TransactionController({new_table})\n")
             else:
                 f.write(line)
     print(f"Updated main.py to use {new_table}")
