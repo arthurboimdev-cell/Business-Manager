@@ -1,7 +1,22 @@
 {
-    "analytics": true,
-    "export_csv": true,
-    "search": true,
-    "summary_stats": true,
-    "dark_mode_toggle": true
+    "analytics": {
+        "enabled": true,
+        "description": "Enables the 'Analytics' tab containing charts (Pie and Bar charts) for financial overview."
+    },
+    "export_csv": {
+        "enabled": true,
+        "description": "Shows the 'Export CSV' button in the transactions toolbar."
+    },
+    "search": {
+        "enabled": true,
+        "description": "Enables the live search bar in the transactions toolbar to filter data."
+    },
+    "summary_stats": {
+        "enabled": true,
+        "description": "Shows the summary panel (Total Income/Expense/Balance) at the bottom of the transaction list."
+    },
+    "dark_mode_toggle": {
+        "enabled": true,
+        "description": "Enables the ability to toggle between Light and Dark themes (if UI controls are added)."
+    }
 }

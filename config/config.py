@@ -30,8 +30,12 @@ features_config = {
 if FEATURES_PATH.exists():
     try:
         with open(FEATURES_PATH, 'r') as f:
-            features = json.load(f)
-            features_config.update(features)
+            file_data = json.load(f)
+            for key, value in file_data.items():
+                if isinstance(value, bool):
+                    features_config[key] = value
+                elif isinstance(value, dict) and "enabled" in value:
+                    features_config[key] = value["enabled"]
     except Exception as e:
         print(f"Warning: Could not load features.json: {e}")
 
