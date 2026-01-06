@@ -3,7 +3,7 @@ import tkinter.font
 from tkinter import ttk, messagebox, filedialog
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-from config.config import TREE_COLUMNS, TRANSACTION_TYPES, BUTTON_ADD, BUTTON_REFRESH, BUTTON_CLEAR
+from config.config import TREE_COLUMNS, TRANSACTION_TYPES, BUTTON_ADD, BUTTON_CLEAR, UI_LABELS, UI_BUTTONS
 from gui.charts import AnalyticsFrame
 
 class InputFrame(tb.Frame):
@@ -16,14 +16,14 @@ class InputFrame(tb.Frame):
 
         self.columnconfigure(1, weight=1)
 
-        self.create_field("Date (YYYY-MM-DD):", 0, "date")
-        self.create_field("Description:", 1, "desc")
-        self.create_field("Quantity:", 2, "qty")
-        self.create_field("Price:", 3, "price")
-        self.create_field("Supplier:", 4, "supplier")
+        self.create_field(UI_LABELS["date"], 0, "date")
+        self.create_field(UI_LABELS["description"], 1, "desc")
+        self.create_field(UI_LABELS["quantity"], 2, "qty")
+        self.create_field(UI_LABELS["price"], 3, "price")
+        self.create_field(UI_LABELS["supplier"], 4, "supplier")
 
         self.type_var = tk.StringVar(value=transaction_types[0])
-        lbl = tb.Label(self, text="Type:")
+        lbl = tb.Label(self, text=UI_LABELS["type"])
         lbl.grid(row=5, column=0, sticky='w', pady=5)
         
         radio_frame = tb.Frame(self)
@@ -82,7 +82,8 @@ class InputFrame(tb.Frame):
         if data.get('supplier'):
             self.entry_supplier.insert(0, data['supplier'])
         self.type_var.set(data['transaction_type'])
-        self.btn_add.configure(text="Update Transaction", bootstyle="warning")
+        # Use dynamic update text
+        self.btn_add.configure(text=UI_BUTTONS.get("update", "Update Transaction"), bootstyle="warning")
 
 
 class TreeFrame(tb.Frame):
@@ -101,11 +102,11 @@ class TreeFrame(tb.Frame):
         self.search_var = tk.StringVar()
         tb.Label(toolbar, text="Search:").pack(side='left', padx=5)
         tb.Entry(toolbar, textvariable=self.search_var).pack(side='left', padx=5)
-        tb.Button(toolbar, text="Filter", bootstyle="info-outline", command=self._handle_search).pack(side='left', padx=5)
-        tb.Button(toolbar, text="Reset", bootstyle="secondary-outline", command=self._handle_reset).pack(side='left', padx=5)
+        tb.Button(toolbar, text=UI_BUTTONS["filter"], bootstyle="info-outline", command=self._handle_search).pack(side='left', padx=5)
+        tb.Button(toolbar, text=UI_BUTTONS["reset"], bootstyle="secondary-outline", command=self._handle_reset).pack(side='left', padx=5)
 
         # Export
-        tb.Button(toolbar, text="Export CSV", bootstyle="success-outline", command=self.on_export).pack(side='right', padx=5)
+        tb.Button(toolbar, text=UI_BUTTONS["export"], bootstyle="success-outline", command=self.on_export).pack(side='right', padx=5)
 
         # -- Treeview --
         self.tree = tb.Treeview(self, columns=columns, show='headings', bootstyle="primary")

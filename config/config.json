@@ -1,0 +1,43 @@
+{
+    "app": {
+        "title": "Business Transactions Manager",
+        "theme": "superhero"
+    },
+    "data": {
+        "database_env_var": "DB_NAME",
+        "table_name": "transactions",
+        "test_table": "transactions_test",
+        "columns": [
+            "date",
+            "description",
+            "quantity",
+            "price",
+            "transaction_type",
+            "total",
+            "supplier"
+        ]
+    },
+    "ui": {
+        "labels": {
+            "date": "Date (YYYY-MM-DD):",
+            "description": "Description:",
+            "quantity": "Quantity:",
+            "price": "Price:",
+            "supplier": "Supplier:",
+            "type": "Type:"
+        },
+        "buttons": {
+            "add": "Add Transaction",
+            "update": "Update Transaction",
+            "clear": "Clear Entries",
+            "refresh": "Refresh",
+            "export": "Export CSV",
+            "filter": "Filter",
+            "reset": "Reset"
+        }
+    },
+    "transaction_types": [
+        "expense",
+        "income"
+    ]
+}
