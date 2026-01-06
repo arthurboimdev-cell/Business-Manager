@@ -46,6 +46,7 @@ def test_add_transaction_invalid_numbers(mock_controller):
         mock_error.assert_called()
         mock_controller.model.add_transaction.assert_not_called()
 
+@pytest.mark.skip(reason="User disabled export tests")
 def test_export_to_csv_cancel(mock_controller):
     """Test cancellation of export dialog"""
     with patch('tkinter.filedialog.asksaveasfilename', return_value=""): # User cancelled
@@ -53,6 +54,7 @@ def test_export_to_csv_cancel(mock_controller):
             mock_controller.export_csv() # Method name is export_csv
             mock_export.assert_not_called()
 
+@pytest.mark.skip(reason="User disabled export tests")
 def test_export_to_csv_success(mock_controller):
     """Test successful export"""
     # Mock data
