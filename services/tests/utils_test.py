@@ -3,11 +3,11 @@ from services.utils import TransactionUtils
 
 # Sample transactions for testing
 SAMPLE_TRANSACTIONS = [
-    {"date": "2025-01-05", "description": "Wax 464-45", "quantity": 17, "price": 12.5, "transaction_type": "expense", "total": 212.5},
-    {"date": "2025-01-10", "description": "Candle Sale - Vanilla", "quantity": 10, "price": 25.0, "transaction_type": "income", "total": 250.0},
-    {"date": "2025-02-15", "description": "Candle Sale - Chocolate", "quantity": 5, "price": 30.0, "transaction_type": "income", "total": 150.0},
-    {"date": "2025-04-20", "description": "Wax Pillar", "quantity": 7, "price": 10.0, "transaction_type": "expense", "total": 70.0},
-    {"date": "2024-12-31", "description": "Old Sale", "quantity": 3, "price": 20.0, "transaction_type": "income", "total": 60.0},
+    {"transaction_date": "2025-01-05", "description": "Wax 464-45", "quantity": 17, "price": 12.5, "transaction_type": "expense", "total": 212.5},
+    {"transaction_date": "2025-01-10", "description": "Candle Sale - Vanilla", "quantity": 10, "price": 25.0, "transaction_type": "income", "total": 250.0},
+    {"transaction_date": "2025-02-15", "description": "Candle Sale - Chocolate", "quantity": 5, "price": 30.0, "transaction_type": "income", "total": 150.0},
+    {"transaction_date": "2025-04-20", "description": "Wax Pillar", "quantity": 7, "price": 10.0, "transaction_type": "expense", "total": 70.0},
+    {"transaction_date": "2024-12-31", "description": "Old Sale", "quantity": 3, "price": 20.0, "transaction_type": "income", "total": 60.0},
 ]
 
 def test_calculate_summary():
@@ -37,7 +37,7 @@ def test_calculate_summary_all_expenses():
     assert summary['avg_price_per_unit'] == 0
 
 def test_calculate_summary_all_income_zero_quantity():
-    transactions = [{"date": "2025-01-01", "description": "Free Giveaway", "quantity": 0, "price": 0, "transaction_type": "income", "total": 0}]
+    transactions = [{"transaction_date": "2025-01-01", "description": "Free Giveaway", "quantity": 0, "price": 0, "transaction_type": "income", "total": 0}]
     summary = TransactionUtils.calculate_summary(transactions)
     assert summary['total_income'] == 0
     assert summary['total_sold_units'] == 0
@@ -48,7 +48,7 @@ def test_filter_by_year():
     filtered = TransactionUtils.filter_by_year(SAMPLE_TRANSACTIONS, 2025)
     assert len(filtered) == 4
     for t in filtered:
-        assert t['date'].startswith("2025-")
+        assert t['transaction_date'].startswith("2025-")
 
 def test_filter_by_year_no_match():
     filtered = TransactionUtils.filter_by_year(SAMPLE_TRANSACTIONS, 2030)
@@ -59,7 +59,7 @@ def test_filter_by_month():
     filtered = TransactionUtils.filter_by_month(SAMPLE_TRANSACTIONS, 2025, 1)
     assert len(filtered) == 2  # Jan 2025: 1 expense + 1 income
     for t in filtered:
-        assert t['date'].startswith("2025-01")
+        assert t['transaction_date'].startswith("2025-01")
 
 def test_filter_by_month_no_match():
     filtered = TransactionUtils.filter_by_month(SAMPLE_TRANSACTIONS, 2025, 12)
@@ -70,7 +70,7 @@ def test_filter_by_quarter():
     # Q1 2025 = Jan-Mar
     filtered = TransactionUtils.filter_by_quarter(SAMPLE_TRANSACTIONS, 2025, 1)
     assert len(filtered) == 3  # Jan + Feb transactions
-    months = [int(t['date'][5:7]) for t in filtered]
+    months = [int(t['transaction_date'][5:7]) for t in filtered]
     for m in months:
         assert 1 <= m <= 3
 
