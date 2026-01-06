@@ -106,8 +106,6 @@ class TreeFrame(tb.Frame):
         self.entry_search = tb.Entry(toolbar, textvariable=self.search_var)
         self.entry_search.pack(side='left', padx=5)
         self.entry_search.bind("<KeyRelease>", lambda e: self._handle_search())
-        tb.Button(toolbar, text=UI_BUTTONS["filter"], bootstyle="info-outline", command=self._handle_search).pack(side='left', padx=5)
-        tb.Button(toolbar, text=UI_BUTTONS["reset"], bootstyle="secondary-outline", command=self._handle_reset).pack(side='left', padx=5)
 
         # Export
         tb.Button(toolbar, text=UI_BUTTONS["export"], bootstyle="success-outline", command=self.on_export).pack(side='right', padx=5)
@@ -133,10 +131,6 @@ class TreeFrame(tb.Frame):
     def _handle_search(self):
         query = self.search_var.get()
         self.on_search(query)
-
-    def _handle_reset(self):
-        self.search_var.set("")
-        self.on_search("")
 
     def show_context_menu(self, event):
         item = self.tree.identify_row(event.y)
