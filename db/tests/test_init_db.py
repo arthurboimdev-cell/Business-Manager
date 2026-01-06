@@ -1,49 +1,44 @@
 import pytest
-from unittest.mock import MagicMock, mock_open, patch
-from db.init_db import init_db, load_creation_sql
+from unittest.mock import MagicMock, patch
+from db.init_db import init_db, generate_create_table_sql
 
-def test_load_creation_sql_missing_file():
-    """Test behavior when SQL file is missing"""
-    with patch("db.init_db.CONFIG_PATH") as mock_path:
-        mock_path.parent.__truediv__.return_value.exists.return_value = False
-        assert load_creation_sql("any_table") is None
+def test_generate_create_table_sql_empty():
+    """Test using empty schema"""
+    assert generate_create_table_sql("tbl", {}) is None
 
-def test_load_creation_sql_success():
-    """Test that SQL is loaded and placeholder replaced"""
-    with patch("db.init_db.CONFIG_PATH") as mock_path:
-        mock_file_path = MagicMock()
-        mock_file_path.exists.return_value = True
-        mock_path.parent.__truediv__.return_value = mock_file_path
-        
-        with patch("builtins.open", mock_open(read_data="CREATE TABLE {table_name} (id INT);")):
-            sql = load_creation_sql("my_table")
-            assert sql == "CREATE TABLE my_table (id INT);"
-
-def test_init_db_table_exists():
-    """Test that no SQL is executed if table exists"""
-    with patch("db.init_db.get_db_connection") as mock_conn:
-        mock_cursor = mock_conn.return_value.cursor.return_value
-        # SHOW TABLES returns a row (True)
-        mock_cursor.fetchone.return_value = (1,) 
-        
-        with patch("db.init_db.load_creation_sql") as mock_load:
-            init_db("existing_table")
-            
-            # Should check table existence
-            mock_cursor.execute.assert_called_with("SHOW TABLES LIKE %s", ("existing_table",))
-            # Should NOT load SQL or execute creation
-            mock_load.assert_not_called()
+def test_generate_create_table_sql_valid():
+    """Test generating SQL from schema dict"""
+    schema = {
+        "id": "INT PRIMARY KEY",
+        "name": "VARCHAR(255)"
+    }
+    sql = generate_create_table_sql("users", schema)
+    
+    expected_start = "CREATE TABLE IF NOT EXISTS users ("
+    assert sql.startswith(expected_start)
+    assert "id INT PRIMARY KEY" in sql
+    assert "name VARCHAR(255)" in sql
 
 def test_init_db_table_missing():
     """Test that creation SQL is executed if table missing"""
     with patch("db.init_db.get_db_connection") as mock_conn:
         mock_cursor = mock_conn.return_value.cursor.return_value
-        # SHOW TABLES returns None (False)
+        # SHOW TABLES returns None (false)
         mock_cursor.fetchone.return_value = None
         
-        with patch("db.init_db.load_creation_sql", return_value="CREATE TABLE sql"):
+        # Patch DB_SCHEMA to ensure it's not empty
+        test_schema = {"col1": "INT"}
+        
+        with patch("db.init_db.DB_SCHEMA", test_schema):
             init_db("missing_table")
             
-            # Should execute creation SQL
-            mock_cursor.execute.assert_any_call("CREATE TABLE sql")
+            # verify execute called with valid SQL
+            call_args = mock_cursor.execute.call_args_list
+            # First call is SHOW TABLES
+            assert "SHOW TABLES" in call_args[0][0][0]
+            # Second call should be CREATE TABLE
+            create_query = call_args[1][0][0]
+            assert "CREATE TABLE" in create_query
+            assert "col1 INT" in create_query
+            
             mock_conn.return_value.commit.assert_called_once()

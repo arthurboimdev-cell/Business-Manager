@@ -90,6 +90,7 @@ if CONFIG_PATH.exists():
 # Expose constants for existing code compatibility
 TABLE_NAME = config_data["data"]["table_name"]
 TEST_TABLE = config_data["data"]["test_table"]
+DB_SCHEMA = config_data["data"].get("db_schema", {})
 WINDOW_TITLE = config_data["app"]["title"]
 TREE_COLUMNS = config_data["data"]["columns"]
 TRANSACTION_TYPES = config_data["transaction_types"]
