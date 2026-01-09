@@ -12,10 +12,11 @@ def mock_controller():
                          with patch('gui.controller.SummaryFrame', MagicMock()):
                             with patch('gui.controller.AnalyticsFrame', MagicMock()):
                                 with patch('gui.controller.ProductsTab', MagicMock()):
-                                    ctrl = TransactionController("test_table")
-                                    ctrl.view = MagicMock()
-                                    ctrl.model = MagicMock()
-                                    return ctrl
+                                    with patch('gui.controller.MaterialsTab', MagicMock()):
+                                        ctrl = TransactionController("test_table")
+                                        ctrl.view = MagicMock()
+                                        ctrl.model = MagicMock()
+                                        return ctrl
 
 def test_add_transaction_empty_fields(mock_controller):
     """Test that adding transaction with empty numeric fields shows error"""

@@ -1,7 +1,7 @@
 from client.api_client import APIClient
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-from gui.dialogs.materials_dialog import MaterialsDialog
+
 
 # Try to import PIL for image handling
 try:
@@ -39,13 +39,24 @@ class ProductsTab(tk.Frame):
         frame_general = tk.LabelFrame(self.left_panel, text="1. General Info", padx=5, pady=5)
         frame_general.pack(fill="x", pady=2)
         
-        tk.Label(frame_general, text="Name:").grid(row=0, column=0, sticky="w")
+        # Product ID (Searchable)
+        tk.Label(frame_general, text="ID:").grid(row=0, column=0, sticky="w")
+        self.entry_id = tk.Entry(frame_general, width=10)
+        self.entry_id.grid(row=0, column=1, padx=2, sticky="w")
+        self.entry_id.bind("<Return>", self.search_by_id)
+        tk.Button(frame_general, text="Find", command=self.search_by_id, font=("Arial", 8)).grid(row=0, column=2, padx=2)
+
+        tk.Label(frame_general, text="Name:").grid(row=1, column=0, sticky="w")
         self.entry_name = tk.Entry(frame_general, width=25)
-        self.entry_name.grid(row=0, column=1, padx=2)
+        self.entry_name.grid(row=1, column=1, columnspan=2, padx=2, sticky="w")
         
-        tk.Label(frame_general, text="Desc:").grid(row=0, column=2, sticky="w")
+        tk.Label(frame_general, text="Desc:").grid(row=2, column=0, sticky="w")
         self.entry_desc = tk.Entry(frame_general, width=25)
-        self.entry_desc.grid(row=0, column=3, padx=2)
+        self.entry_desc.grid(row=2, column=1, columnspan=2, padx=2, sticky="w")
+        
+        tk.Label(frame_general, text="Units in stock:").grid(row=3, column=0, sticky="w", pady=2)
+        self.entry_stock = tk.Entry(frame_general, width=10)
+        self.entry_stock.grid(row=3, column=1, sticky="w", padx=2, pady=2)
 
         # --- 2. Physical Specs ---
         frame_specs = tk.LabelFrame(self.left_panel, text="2. Physical Specs", padx=5, pady=5)
@@ -97,8 +108,6 @@ class ProductsTab(tk.Frame):
         self.combo_container.grid(row=3, column=1, padx=2)
         self.combo_container.bind("<<ComboboxSelected>>", self.calculate_cogs)
 
-        tk.Button(frame_bom, text="Manage Materials", command=self.open_materials_dialog, font=("Arial", 8)).grid(row=4, column=0, columnspan=4, pady=5)
-
         # --- 4. Financials ---
         frame_fin = tk.LabelFrame(self.left_panel, text="4. Financials", padx=5, pady=5)
         frame_fin.pack(fill="x", pady=2)
@@ -116,6 +125,7 @@ class ProductsTab(tk.Frame):
         btn_frame = tk.Frame(self.left_panel)
         btn_frame.pack(fill="x", pady=10)
         tk.Button(btn_frame, text="Add Product", command=self.add_product, bg="#4CAF50", fg="white").pack(side="left", padx=2)
+        tk.Button(btn_frame, text="Update Product", command=self.update_product, bg="#FF9800", fg="white").pack(side="left", padx=2)
         tk.Button(btn_frame, text="Clear", command=self.clear_inputs).pack(side="left", padx=2)
         tk.Button(btn_frame, text="Select Image", command=self.select_image).pack(side="left", padx=2)
         self.lbl_image_status = tk.Label(btn_frame, text="")
@@ -138,7 +148,7 @@ class ProductsTab(tk.Frame):
         self.lbl_total_cogs.pack(anchor="e", pady=5)
 
     def create_list_frame(self):
-        cols = ("ID", "Name", "Wax", "Fragrance", "Total Cost")
+        cols = ("ID", "Name", "Stock", "Wax", "Fragrance", "Total Cost")
         self.tree = ttk.Treeview(self.right_panel, columns=cols, show="headings")
         self.tree.pack(fill="both", expand=True)
         
@@ -146,12 +156,14 @@ class ProductsTab(tk.Frame):
             self.tree.heading(col, text=col)
             self.tree.column(col, width=80)
             
+        self.tree.bind("<<TreeviewSelect>>", self.on_product_select)
+            
         tk.Button(self.right_panel, text="Delete Selected", command=self.delete_product_gui).pack(pady=5)
         tk.Button(self.right_panel, text="Refresh List", command=self.refresh_products).pack(pady=5)
 
     def open_materials_dialog(self):
-        dlg = MaterialsDialog(self)
-        self.wait_window(dlg)
+        # Deprecated logic removed, using MaterialsTab instead
+        MaterialsDialog(self)
         self.refresh_prods_and_mats()
 
     def refresh_prods_and_mats(self):
@@ -178,19 +190,27 @@ class ProductsTab(tk.Frame):
             
         total_cost = 0.0
         
-        def get_mat_cost(name, cat):
+        def get_mat_info(name, cat):
             for m in self.materials:
                 if m['name'] == name and m['category'] == cat:
-                    return float(m['unit_cost'])
-            return 0.0
+                    return float(m['unit_cost']), m.get('unit_type', '').lower()
+            return 0.0, ""
 
         # 1. Wax
         try:
             wax_g = float(self.entry_wax_g.get() or 0)
             wax_name = self.combo_wax.get()
-            unit_cost = get_mat_cost(wax_name, 'wax')
-            cost = wax_g * unit_cost
-            self.cogs_tree.insert("", "end", values=("Wax", f"{wax_g} g", f"${unit_cost}", f"${cost:.2f}"))
+            unit_cost, unit_type = get_mat_info(wax_name, 'wax')
+            
+            # Handle KG conversion
+            if unit_type in ['kg', 'kilogram', 'kgs']:
+                cost = (wax_g / 1000) * unit_cost
+                unit_label = f"${unit_cost}/kg"
+            else:
+                cost = wax_g * unit_cost
+                unit_label = f"${unit_cost}"
+
+            self.cogs_tree.insert("", "end", values=("Wax", f"{wax_g} g", unit_label, f"${cost:.2f}"))
             total_cost += cost
         except ValueError: pass
 
@@ -198,16 +218,24 @@ class ProductsTab(tk.Frame):
         try:
             frag_g = float(self.entry_fragrance_g.get() or 0)
             frag_name = self.combo_fragrance.get()
-            unit_cost = get_mat_cost(frag_name, 'fragrance')
-            cost = frag_g * unit_cost
-            self.cogs_tree.insert("", "end", values=("Fragrance", f"{frag_g} g", f"${unit_cost}", f"${cost:.2f}"))
+            unit_cost, unit_type = get_mat_info(frag_name, 'fragrance')
+            
+            # Handle KG conversion
+            if unit_type in ['kg', 'kilogram', 'kgs']:
+                cost = (frag_g / 1000) * unit_cost
+                unit_label = f"${unit_cost}/kg"
+            else:
+                cost = frag_g * unit_cost
+                unit_label = f"${unit_cost}"
+
+            self.cogs_tree.insert("", "end", values=("Fragrance", f"{frag_g} g", unit_label, f"${cost:.2f}"))
             total_cost += cost
         except ValueError: pass
 
         # 3. Wick
         try:
             wick_name = self.combo_wick.get()
-            unit_cost = get_mat_cost(wick_name, 'wick')
+            unit_cost, _ = get_mat_info(wick_name, 'wick')
             self.cogs_tree.insert("", "end", values=("Wick", "1 unit", f"${unit_cost}", f"${unit_cost:.2f}"))
             total_cost += unit_cost
         except ValueError: pass
@@ -215,7 +243,7 @@ class ProductsTab(tk.Frame):
         # 4. Container
         try:
             cont_name = self.combo_container.get()
-            unit_cost = get_mat_cost(cont_name, 'container')
+            unit_cost, _ = get_mat_info(cont_name, 'container')
             self.cogs_tree.insert("", "end", values=("Container", "1 unit", f"${unit_cost}", f"${unit_cost:.2f}"))
             total_cost += unit_cost
         except ValueError: pass
@@ -242,10 +270,16 @@ class ProductsTab(tk.Frame):
         self.products = APIClient.get_products()
         for p in self.products:
             self.tree.insert("", "end", values=(
-                p.get('id'), p.get('name'), p.get('wax_type'), p.get('fragrance'), f"${(p.get('total_cost') or 0):.2f}"
+                p.get('id'), p.get('name'), p.get('stock_quantity', 0), p.get('wax_type'), p.get('fragrance'), f"${(p.get('total_cost') or 0):.2f}"
             ))
 
     def add_product(self):
+        self._save_product(is_update=False)
+
+    def update_product(self):
+        self._save_product(is_update=True)
+
+    def _save_product(self, is_update):
         name = self.entry_name.get().strip()
         if not name:
             messagebox.showerror("Error", "Name required")
@@ -256,6 +290,7 @@ class ProductsTab(tk.Frame):
             data = {
                 "name": name,
                 "description": self.entry_desc.get(),
+                "stock_quantity": int(self.entry_stock.get() or 0),
                 "length_cm": float(self.entry_l.get() or 0),
                 "width_cm": float(self.entry_w.get() or 0),
                 "height_cm": float(self.entry_h.get() or 0),
@@ -270,12 +305,96 @@ class ProductsTab(tk.Frame):
                 "total_cost": total_cost,
                 "image": self.image_data
             }
-            APIClient.add_product(data)
-            messagebox.showinfo("Success", "Product Added")
+            
+            if is_update:
+                selected = self.tree.selection()
+                if not selected:
+                    messagebox.showwarning("Warning", "No product selected to update")
+                    return
+                p_id = self.tree.item(selected[0])['values'][0]
+                APIClient.update_product(p_id, data)
+                messagebox.showinfo("Success", "Product Updated")
+            else:
+                APIClient.add_product(data)
+                messagebox.showinfo("Success", "Product Added")
+                
             self.clear_inputs()
             self.refresh_products()
         except Exception as e:
             messagebox.showerror("Error", str(e))
+
+    def search_by_id(self, event=None):
+        search_id = self.entry_id.get().strip()
+        if not search_id: return
+        
+        # Determine if numeric
+        if not search_id.isdigit():
+            messagebox.showerror("Error", "ID must be a number")
+            return
+            
+        search_id = int(search_id)
+        
+        # Find in tree items
+        found_item = None
+        for item in self.tree.get_children():
+            vals = self.tree.item(item)['values']
+            if vals[0] == search_id:
+                found_item = item
+                break
+        
+        if found_item:
+            self.tree.selection_set(found_item)
+            self.tree.see(found_item)
+            # The selection event will trigger population, but we can force it or let event handle it
+            # The event binding might not trigger if set programmatically depending on Tk version/OS
+            # Let's call select handler manually to be safe or rely on event. 
+            # Usually selection_set triggers <<TreeviewSelect>> in some frameworks but Tcl/Tk often doesn't.
+            # We'll call on_product_select manualy via a fake event or direct logic? 
+            # actually better to just call logic directly.
+            self.on_product_select(None)
+        else:
+            messagebox.showinfo("Not Found", f"Product ID {search_id} not found.")
+
+    def on_product_select(self, event):
+        selected = self.tree.selection()
+        if not selected: return
+        
+        p_id = self.tree.item(selected[0])['values'][0]
+        # Find product in self.products
+        product = next((p for p in self.products if p['id'] == p_id), None)
+        
+        if product:
+            self.clear_inputs()
+            self.entry_id.insert(0, str(p_id))
+            self.entry_name.insert(0, product.get('name', ''))
+            self.entry_desc.insert(0, product.get('description') or '')
+            self.entry_stock.insert(0, str(product.get('stock_quantity', 0)))
+            self.entry_l.insert(0, str(product.get('length_cm', 0)))
+            self.entry_w.insert(0, str(product.get('width_cm', 0)))
+            self.entry_h.insert(0, str(product.get('height_cm', 0)))
+            self.entry_weight.insert(0, str(product.get('weight_g', 0)))
+            
+            self.combo_wax.set(product.get('wax_type') or '')
+            self.entry_wax_g.insert(0, str(product.get('wax_weight_g', 0)))
+            
+            self.combo_fragrance.set('') # Logic to get frag name if stored? Currently stored in product?
+            # Note: Previously we didn't seem to store frag_type explicitly in schema? 
+            # Check schema: no 'fragrance_type' column! Just 'fragrance_weight_g'.
+            # Wait, list view shows "Fragrance"? 
+            # Let's check refresh_products list values: p.get('fragrance') ??
+            # Schema has NO fragrance column. It has 'fragrance_weight_g'.
+            # The list view in refresh_products uses p.get('fragrance'), which likely returns None/Null if not in DB.
+            # I should verify if I wanted to store the fragrance NAME.
+            # The input stores Fragrance Weight.
+            
+            self.entry_fragrance_g.insert(0, str(product.get('fragrance_weight_g', 0)))
+            self.combo_wick.set(product.get('wick_type') or '')
+            self.combo_container.set(product.get('container_type') or '')
+            self.entry_box.insert(0, str(product.get('box_price', 0)))
+            self.entry_wrap.insert(0, str(product.get('wrap_price', 0)))
+            
+            # Recalculate COGS based on loaded values
+            self.calculate_cogs()
 
     def delete_product_gui(self):
         selected = self.tree.selection()
@@ -286,8 +405,10 @@ class ProductsTab(tk.Frame):
                 self.refresh_products()
 
     def clear_inputs(self):
+        self.entry_id.delete(0, tk.END)
         self.entry_name.delete(0, tk.END)
         self.entry_desc.delete(0, tk.END)
+        self.entry_stock.delete(0, tk.END)
         self.entry_l.delete(0, tk.END)
         self.entry_w.delete(0, tk.END)
         self.entry_h.delete(0, tk.END)

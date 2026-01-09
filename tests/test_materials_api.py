@@ -27,6 +27,7 @@ def test_add_material():
         mock_add.assert_called_with(
             name="Test Wick",
             category="wick",
+            stock_quantity=0.0,
             unit_cost=0.10,
             unit_type="unit",
             table=MATERIALS_TABLE

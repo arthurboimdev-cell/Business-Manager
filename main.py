@@ -17,9 +17,7 @@ def start_server():
     server_args.append("--server")
     
     process = subprocess.Popen(
-        server_args,
-        stdout=subprocess.DEVNULL, 
-        stderr=subprocess.DEVNULL
+        server_args
     )
     print(f"Server started with PID: {process.pid}")
     return process
@@ -28,8 +26,20 @@ from server.main import app as server_app
 
 def run_server_process():
     """Function to run the uvicorn server directly"""
+    # Fix for PyInstaller noconsole mode where stdout/stderr are None
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, 'w')
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, 'w')
+
     # Pass the app object directly instead of a string to avoid import errors in frozen exe
-    uvicorn.run(server_app, host=SERVER_HOST, port=SERVER_PORT, log_level="info")
+    uvicorn.run(server_app, host=SERVER_HOST, port=SERVER_PORT, log_level="info", use_colors=False)
+
+import socket
+
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('127.0.0.1', port)) == 0
 
 if __name__ == "__main__":
     multiprocessing.freeze_support() # Required for PyInstaller
@@ -56,11 +66,19 @@ if __name__ == "__main__":
         init_db(PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA)
         init_db(MATERIALS_TABLE, MATERIALS_SCHEMA)
         
-        print("Starting AurumCandles Server...")
-        server_process = start_server()
-        
-        # Wait for server to be ready
-        time.sleep(3)
+        # DEBUG: Print environment info
+        is_frozen_state = getattr(sys, 'frozen', False)
+        print(f"DEBUG: sys.frozen={is_frozen_state}")
+        print(f"DEBUG: Using Tables -> Transactions: '{TABLE_NAME}', Products: '{PRODUCTS_TABLE_NAME}', Materials: '{MATERIALS_TABLE}'")
+
+        server_process = None
+        if is_port_in_use(SERVER_PORT):
+            print(f"Port {SERVER_PORT} is already in use. Assuming Server is running.")
+        else:
+            print("Starting AurumCandles Server...")
+            server_process = start_server()
+            # Wait for server to be ready
+            time.sleep(3)
         
         try:
             print("Starting GUI...")
@@ -69,6 +87,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Application error: {e}")
         finally:
-            print("Shutting down server...")
-            server_process.terminate()
-            server_process.wait()
+            if server_process:
+                print("Shutting down server...")
+                server_process.terminate()
+                server_process.wait()

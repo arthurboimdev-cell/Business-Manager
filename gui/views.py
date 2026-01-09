@@ -207,7 +207,11 @@ class MainWindow(tb.Window):
         self.tab_products = tb.Frame(self.notebook)
         self.notebook.add(self.tab_products, text="Products")
 
-        # Tab 3: Analytics
+        # Tab 3: Materials (NEW)
+        self.tab_materials = tb.Frame(self.notebook)
+        self.notebook.add(self.tab_materials, text="Materials")
+
+        # Tab 4: Analytics
         self.tab_analytics = tb.Frame(self.notebook)
         self.notebook.add(self.tab_analytics, text="Analytics")
 

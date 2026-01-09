@@ -1,15 +1,15 @@
 from db.db_connection import get_db_connection
 from config.config import MATERIALS_TABLE
 
-def add_material(name, category, unit_cost, unit_type, table=MATERIALS_TABLE):
+def add_material(name, category, stock_quantity, unit_cost, unit_type, table=MATERIALS_TABLE):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         query = f"""
-            INSERT INTO {table} (name, category, unit_cost, unit_type)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO {table} (name, category, stock_quantity, unit_cost, unit_type)
+            VALUES (%s, %s, %s, %s, %s)
         """
-        cursor.execute(query, (name, category, unit_cost, unit_type))
+        cursor.execute(query, (name, category, stock_quantity, unit_cost, unit_type))
         conn.commit()
         return cursor.lastrowid
     finally:
@@ -26,16 +26,16 @@ def get_materials(table=MATERIALS_TABLE):
         cursor.close()
         conn.close()
 
-def update_material(material_id, name, category, unit_cost, unit_type, table=MATERIALS_TABLE):
+def update_material(material_id, name, category, stock_quantity, unit_cost, unit_type, table=MATERIALS_TABLE):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         query = f"""
             UPDATE {table}
-            SET name=%s, category=%s, unit_cost=%s, unit_type=%s
+            SET name=%s, category=%s, stock_quantity=%s, unit_cost=%s, unit_type=%s
             WHERE id=%s
         """
-        cursor.execute(query, (name, category, unit_cost, unit_type, material_id))
+        cursor.execute(query, (name, category, stock_quantity, unit_cost, unit_type, material_id))
         conn.commit()
     finally:
         cursor.close()

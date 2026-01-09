@@ -19,18 +19,7 @@ def run_tests():
     result = subprocess.run([PYTHON_EXE, "-m", "pytest", "-v"])
     return result.returncode == 0
 
-def replace_table_name(new_table):
-    """Replace the table used in start_gui() in main.py"""
-    with open(MAIN_FILE, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-
-    with open(MAIN_FILE, "w", encoding="utf-8") as f:
-        for line in lines:
-            if "app = TransactionController(" in line:
-                f.write(f"    app = TransactionController({new_table})\n")
-            else:
-                f.write(line)
-    print(f"Updated main.py to use {new_table}")
+# replace_table_name removed - logic now handled by sys.frozen in config.py
 
 def build_executable():
     print("Building executable...")

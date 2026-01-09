@@ -4,6 +4,7 @@ from services.data_service import DataService
 from gui.models import TransactionModel
 from gui.views import MainWindow, InputFrame, TreeFrame, SummaryFrame
 from gui.charts import AnalyticsFrame
+from gui.tabs.materials_tab import MaterialsTab
 from gui.tabs.products_tab import ProductsTab
 from config.config import TREE_COLUMNS, TRANSACTION_TYPES, WINDOW_TITLE, FEATURES
 
@@ -44,7 +45,11 @@ class TransactionController:
         self.products_tab = ProductsTab(self.view.tab_products)
         self.products_tab.pack(fill='both', expand=True, padx=10, pady=10)
 
-        # --- Tab 2: Analytics ---
+        # --- Tab 3: Materials ---
+        self.materials_tab = MaterialsTab(self.view.tab_materials)
+        self.materials_tab.pack(fill='both', expand=True, padx=10, pady=10)
+
+        # --- Tab 4: Analytics ---
         if FEATURES.get("analytics", True):
             self.analytics_frame = AnalyticsFrame(self.view.tab_analytics)
             self.analytics_frame.pack(fill='both', expand=True, padx=10, pady=10)

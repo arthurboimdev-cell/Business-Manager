@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from dotenv import load_dotenv
 from pathlib import Path
@@ -9,8 +10,24 @@ load_dotenv(env_path)
 
 # --- Load JSON Configuration ---
 # Config is now inside the config folder, same as this script
-CONFIG_PATH = Path(__file__).parent / 'config.json'
-FEATURES_PATH = Path(__file__).parent / 'features.json'
+# Handle paths for frozen app
+if getattr(sys, 'frozen', False):
+    # If frozen, use the executable's directory or _internal depending on PyInstaller mode
+    # Usually relative to sys._MEIPASS or sys.executable
+    # For external config (editable by user), usually next to exe:
+    BASE_DIR = Path(sys.executable).parent
+    # Check if we should look in internal or external
+    # Let's verify if 'config/config.json' exists next to exe
+    if (BASE_DIR / 'config' / 'config.json').exists():
+         CONFIG_PATH = BASE_DIR / 'config' / 'config.json'
+         FEATURES_PATH = BASE_DIR / 'config' / 'features.json'
+    else:
+         # Fallback to internal (bundled)
+         CONFIG_PATH = Path(__file__).parent / 'config.json'
+         FEATURES_PATH = Path(__file__).parent / 'features.json'
+else:
+    CONFIG_PATH = Path(__file__).parent / 'config.json'
+    FEATURES_PATH = Path(__file__).parent / 'features.json'
 
 config_from_json = {}
 if CONFIG_PATH.exists():
@@ -90,6 +107,15 @@ defaults = {
             "box_price": "DECIMAL(10, 2)",
             "wrap_price": "DECIMAL(10, 2)",
             "image": "LONGBLOB"
+        },
+        "materials_table": "materials",
+        "materials_schema": {
+            "id": "INT AUTO_INCREMENT PRIMARY KEY",
+            "name": "VARCHAR(255)",
+            "category": "VARCHAR(50)",
+            "stock_quantity": "DECIMAL(10, 2) DEFAULT 0.00",
+            "unit_cost": "DECIMAL(10, 4)",
+            "unit_type": "VARCHAR(20)"
         }
     },
     "ui": {

@@ -34,6 +34,11 @@ def mock_products_tab():
     with patch('gui.controller.ProductsTab') as mock:
         yield mock
 
+@pytest.fixture(autouse=True)
+def mock_materials_tab():
+    with patch('gui.controller.MaterialsTab') as mock:
+        yield mock
+
 @pytest.fixture
 def mock_model():
     with patch('gui.controller.TransactionModel') as mock_class:

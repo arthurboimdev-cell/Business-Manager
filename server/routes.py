@@ -110,12 +110,14 @@ from config.config import MATERIALS_TABLE
 class MaterialCreate(BaseModel):
     name: str
     category: str
+    stock_quantity: Optional[float] = 0.0
     unit_cost: float
     unit_type: str
 
 class MaterialUpdate(BaseModel):
     name: Optional[str] = None
     category: Optional[str] = None
+    stock_quantity: Optional[float] = None
     unit_cost: Optional[float] = None
     unit_type: Optional[str] = None
 
@@ -133,6 +135,7 @@ def add_material(item: MaterialCreate):
         new_id = material_ops.add_material(
             name=item.name,
             category=item.category,
+            stock_quantity=item.stock_quantity,
             unit_cost=item.unit_cost,
             unit_type=item.unit_type,
             table=MATERIALS_TABLE
@@ -149,6 +152,7 @@ def update_material(m_id: int, item: MaterialUpdate):
             material_id=m_id,
             name=item.name,
             category=item.category,
+            stock_quantity=item.stock_quantity,
             unit_cost=item.unit_cost,
             unit_type=item.unit_type,
             table=MATERIALS_TABLE
@@ -175,6 +179,7 @@ import base64
 class ProductCreate(BaseModel):
     name: str
     description: Optional[str] = None
+    stock_quantity: Optional[int] = 0
     weight_g: Optional[float] = 0.0
     length_cm: Optional[float] = 0.0
     width_cm: Optional[float] = 0.0
@@ -193,6 +198,7 @@ class ProductCreate(BaseModel):
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    stock_quantity: Optional[int] = None
     weight_g: Optional[float] = None
     length_cm: Optional[float] = None
     width_cm: Optional[float] = None
