@@ -111,6 +111,7 @@ defaults = {
             "image": "LONGBLOB"
         },
         "materials_table": "materials",
+        "materials_test_table": "materials_test",
         "materials_schema": {
             "id": "INT AUTO_INCREMENT PRIMARY KEY",
             "name": "VARCHAR(255)",
@@ -160,16 +161,18 @@ is_frozen = getattr(sys, 'frozen', False)
 if is_frozen:
      TABLE_NAME = config_data["data"]["transactions_table"]
      PRODUCTS_TABLE_NAME = config_data["data"]["products_table"]
+     MATERIALS_TABLE_NAME = config_data["data"]["materials_table"]
 else:
      TABLE_NAME = config_data["data"]["transactions_test_table"]
      PRODUCTS_TABLE_NAME = config_data["data"]["products_test_table"]
+     MATERIALS_TABLE_NAME = config_data["data"]["materials_test_table"]
 
 TEST_TABLE = config_data["data"]["transactions_test_table"]
 DB_SCHEMA = config_data["data"].get("transactions_schema", {}) # Backward compat
 TRANSACTIONS_SCHEMA = config_data["data"].get("transactions_schema", {})
 PRODUCTS_SCHEMA = config_data["data"].get("products_schema", {})
 MATERIALS_SCHEMA = config_data["data"].get("materials_schema", {})
-MATERIALS_TABLE = config_data["data"].get("materials_table", "materials")
+MATERIALS_TABLE = MATERIALS_TABLE_NAME
 
 WINDOW_TITLE = config_data["app"]["title"]
 TREE_COLUMNS = config_data["data"]["transaction_columns"]

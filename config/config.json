@@ -56,6 +56,7 @@
             "image": "LONGBLOB"
         },
         "materials_table": "materials",
+        "materials_test_table": "materials_test",
         "materials_schema": {
             "id": "INT AUTO_INCREMENT PRIMARY KEY",
             "name": "VARCHAR(255)",
