@@ -88,7 +88,20 @@ if CONFIG_PATH.exists():
         print(f"Warning: Could not load config.json: {e}")
 
 # Expose constants for existing code compatibility
-TABLE_NAME = config_data["data"]["table_name"]
+import sys
+
+# ... previous imports ...
+
+# Expose constants for existing code compatibility
+# Logic: If running as compiled exe (frozen), use production table.
+#        If running as script (dev/IDE), use test table to protect real data.
+is_frozen = getattr(sys, 'frozen', False)
+
+if is_frozen:
+     TABLE_NAME = config_data["data"]["table_name"]
+else:
+     TABLE_NAME = config_data["data"]["test_table"]
+
 TEST_TABLE = config_data["data"]["test_table"]
 DB_SCHEMA = config_data["data"].get("db_schema", {})
 WINDOW_TITLE = config_data["app"]["title"]
@@ -105,4 +118,9 @@ BUTTON_CLEAR = config_data["ui"]["buttons"].get("clear", "Clear Entries")
 UI_LABELS = config_data["ui"]["labels"]
 UI_BUTTONS = config_data["ui"]["buttons"]
 FEATURES = features_config
+# Server Configuration
+SERVER_HOST = config_data.get("app", {}).get("server", {}).get("host", "127.0.0.1")
+SERVER_PORT = config_data.get("app", {}).get("server", {}).get("port", 8000)
+SERVER_URL = f"http://{SERVER_HOST}:{SERVER_PORT}"
+
 FEATURES = features_config

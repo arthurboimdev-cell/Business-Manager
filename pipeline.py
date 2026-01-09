@@ -39,24 +39,19 @@ def build_executable():
     
     subprocess.run([
         PYTHON_EXE, "-m", "PyInstaller", 
-        "--onefile", 
-        "--noconsole",
-        "--add-data", "config/local.env;config", 
-        MAIN_FILE
+        "--clean",
+        "main.spec"
     ], check=True)
     print("Executable built in dist/ folder.")
 
 def main():
     if run_tests():
         print("All tests passed")
-
-        # Temporarily switch to production table
-        replace_table_name("TABLE_NAME")
         try:
             build_executable()
-        finally:
-            # Restore back to test table
-            replace_table_name("TEST_TABLE")
+        except Exception as e:
+            print(f"Build failed: {e}")
+            sys.exit(1)
     else:
         print("Some tests failed. Aborting build.")
 

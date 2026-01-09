@@ -1,25 +1,22 @@
-from db.transactions import (
-    write_transaction,
-    read_transactions,
-    delete_transaction,
-    update_transaction
-)
+from client.api_client import APIClient
 
 class TransactionModel:
     """
-    Acts as an intermediary between the Controller and the Database functions.
+    Acts as an intermediary between the Controller and the API.
     """
     def __init__(self, table_name):
         self.table_name = table_name
+        # Note: table_name is less relevant on client side now as API handles it, 
+        # but kept for compatibility or potentially sending as param if API supported dynamic tables.
 
     def get_all_transactions(self):
-        return read_transactions(table=self.table_name)
+        return APIClient.get_all_transactions()
 
     def add_transaction(self, date, desc, qty, price, t_type, supplier=None):
-        return write_transaction(date, desc, qty, price, t_type, supplier, table=self.table_name)
+        return APIClient.add_transaction(date, desc, qty, price, t_type, supplier)
 
     def delete_transaction(self, t_id):
-        delete_transaction(t_id, table=self.table_name)
+        APIClient.delete_transaction(t_id)
     
     def update_transaction(self, t_id, date, desc, qty, price, t_type, supplier=None):
-        update_transaction(t_id, date, desc, qty, price, t_type, supplier, table=self.table_name)
+        APIClient.update_transaction(t_id, date, desc, qty, price, t_type, supplier)

@@ -1,63 +1,47 @@
 import pytest
+from unittest.mock import patch, MagicMock
 from gui.models import TransactionModel
-from db.db_connection import get_db_connection
-from db.transactions import read_transactions
 
 TEST_TABLE = "transactions_test"
 
-from db.init_db import init_db
+@pytest.fixture
+def mock_api():
+    with patch("gui.models.APIClient") as mock:
+        yield mock
 
-@pytest.fixture(autouse=True)
-def clean_table():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(f"DROP TABLE IF EXISTS {TEST_TABLE}")
-    conn.commit()
-    cursor.close()
-    conn.close()
-    
-    init_db(TEST_TABLE)
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(f"DELETE FROM {TEST_TABLE}")
-        conn.commit()
-    finally:
-        cursor.close()
-        conn.close()
-    yield
-    # Cleanup
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(f"DELETE FROM {TEST_TABLE}")
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-def test_model_add_and_get():
+def test_model_add_and_get(mock_api):
     model = TransactionModel(TEST_TABLE)
-    model.add_transaction('2025-01-01', 'Model Test', 5, 10.0, 'income')
     
+    # Setup mock return values
+    mock_api.get_all_transactions.return_value = [
+        {'id': 1, 'description': 'Model Test', 'quantity': 5, 'price': 10.0, 'transaction_type': 'income'}
+    ]
+    
+    model.add_transaction('2025-01-01', 'Model Test', 5, 10.0, 'income')
     rows = model.get_all_transactions()
+    
+    # Verify API called
+    mock_api.add_transaction.assert_called_with('2025-01-01', 'Model Test', 5, 10.0, 'income', None)
+    mock_api.get_all_transactions.assert_called_once()
+    
     assert len(rows) == 1
     assert rows[0]['description'] == 'Model Test'
 
-def test_model_update():
+def test_model_update(mock_api):
     model = TransactionModel(TEST_TABLE)
+    
+    # Mock add return
+    mock_api.add_transaction.return_value = 123
     t_id = model.add_transaction('2025-01-01', 'To Update', 1, 1.0, 'expense')
     
     model.update_transaction(t_id, '2025-01-01', 'Updated', 2, 2.0, 'expense')
     
-    rows = model.get_all_transactions()
-    assert rows[0]['description'] == 'Updated'
-    assert rows[0]['quantity'] == 2
+    mock_api.update_transaction.assert_called_with(123, '2025-01-01', 'Updated', 2, 2.0, 'expense', None)
 
-def test_model_delete():
+def test_model_delete(mock_api):
     model = TransactionModel(TEST_TABLE)
-    t_id = model.add_transaction('2025-01-01', 'To Delete', 1, 1.0, 'expense')
+    t_id = 99
     
     model.delete_transaction(t_id)
     
-    rows = model.get_all_transactions()
-    assert len(rows) == 0
+    mock_api.delete_transaction.assert_called_with(t_id)

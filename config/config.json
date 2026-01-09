@@ -1,7 +1,11 @@
 {
     "app": {
         "title": "Business Transactions Manager",
-        "theme": "superhero"
+        "theme": "superhero",
+        "server": {
+            "host": "127.0.0.1",
+            "port": 8000
+        }
     },
     "data": {
         "database_env_var": "DB_NAME",
