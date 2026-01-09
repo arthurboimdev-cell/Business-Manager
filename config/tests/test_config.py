@@ -32,7 +32,8 @@ def test_config_loading():
     assert config.WINDOW_TITLE == "Business Transactions Manager"
     
     # Data
-    assert config.TABLE_NAME == "transactions"
+    # In non-frozen environment (like tests), we expect the test table
+    assert config.TABLE_NAME == "transactions_test"
     assert "date" in config.TREE_COLUMNS
     
     # UI

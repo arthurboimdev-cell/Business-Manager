@@ -6,9 +6,6 @@ def get_db_connection():
     """
     Returns a MySQL connection.
 
-    Args:
-        test (bool): If True, connect to the test database.
-
     Returns:
         mysql.connector.connection.MySQLConnection
     """
