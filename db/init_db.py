@@ -14,9 +14,9 @@ def generate_create_table_sql(table_name, schema):
     columns_block = ",\n".join(columns_sql)
     return f"CREATE TABLE IF NOT EXISTS {table_name} (\n{columns_block}\n);"
 
-def init_db(table_name):
+def init_db(table_name, schema):
     """
-    Checks if table exists. If not, generates SQL from DB_SCHEMA and creates it.
+    Checks if table exists. If not, generates SQL from schema and creates it.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -30,7 +30,7 @@ def init_db(table_name):
             print(f"Table '{table_name}' already exists.")
         else:
             print(f"Table '{table_name}' does not exist. Creating...")
-            create_sql = generate_create_table_sql(table_name, DB_SCHEMA)
+            create_sql = generate_create_table_sql(table_name, schema)
             
             if create_sql:
                 cursor.execute(create_sql)

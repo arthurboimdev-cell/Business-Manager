@@ -102,3 +102,164 @@ def get_summary():
     except Exception as e:
         logger.error(f"Error getting summary: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
+# --- Materials Routes ---
+from db import materials as material_ops
+from config.config import MATERIALS_TABLE
+
+class MaterialCreate(BaseModel):
+    name: str
+    category: str
+    unit_cost: float
+    unit_type: str
+
+class MaterialUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    unit_cost: Optional[float] = None
+    unit_type: Optional[str] = None
+
+@router.get("/materials")
+def get_materials():
+    try:
+        return material_ops.get_materials(table=MATERIALS_TABLE)
+    except Exception as e:
+        logger.error(f"Error getting materials: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/materials")
+def add_material(item: MaterialCreate):
+    try:
+        new_id = material_ops.add_material(
+            name=item.name,
+            category=item.category,
+            unit_cost=item.unit_cost,
+            unit_type=item.unit_type,
+            table=MATERIALS_TABLE
+        )
+        return {"id": new_id, "message": "Material added"}
+    except Exception as e:
+        logger.error(f"Error adding material: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/materials/{m_id}")
+def update_material(m_id: int, item: MaterialUpdate):
+    try:
+        material_ops.update_material(
+            material_id=m_id,
+            name=item.name,
+            category=item.category,
+            unit_cost=item.unit_cost,
+            unit_type=item.unit_type,
+            table=MATERIALS_TABLE
+        )
+        return {"message": "Material updated"}
+    except Exception as e:
+        logger.error(f"Error updating material: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/materials/{m_id}")
+def delete_material(m_id: int):
+    try:
+        material_ops.delete_material(m_id, table=MATERIALS_TABLE)
+        return {"message": "Material deleted"}
+    except Exception as e:
+        logger.error(f"Error deleting material: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- Product Routes ---
+from db import products as product_ops
+from config.config import PRODUCTS_TABLE_NAME
+import base64
+
+class ProductCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    weight_g: Optional[float] = 0.0
+    length_cm: Optional[float] = 0.0
+    width_cm: Optional[float] = 0.0
+    height_cm: Optional[float] = 0.0
+    wax_type: Optional[str] = None
+    wax_weight_g: Optional[float] = 0.0
+    fragrance_weight_g: Optional[float] = 0.0
+    wick_type: Optional[str] = None
+    container_type: Optional[str] = None
+    container_details: Optional[str] = None
+    box_price: Optional[float] = 0.0
+    wrap_price: Optional[float] = 0.0
+    total_cost: Optional[float] = 0.0
+    image: Optional[str] = None # Base64 string
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    weight_g: Optional[float] = None
+    length_cm: Optional[float] = None
+    width_cm: Optional[float] = None
+    height_cm: Optional[float] = None
+    wax_type: Optional[str] = None
+    wax_weight_g: Optional[float] = None
+    fragrance_weight_g: Optional[float] = None
+    wick_type: Optional[str] = None
+    container_type: Optional[str] = None
+    container_details: Optional[str] = None
+    box_price: Optional[float] = None
+    wrap_price: Optional[float] = None
+    total_cost: Optional[float] = None
+    image: Optional[str] = None
+
+@router.get("/products")
+def get_products():
+    try:
+        products = product_ops.get_products(table=PRODUCTS_TABLE_NAME)
+        # Convert BLOB bytes to Base64 string for JSON response
+        for p in products:
+            if p.get('image'):
+                if isinstance(p['image'], bytes):
+                    p['image'] = base64.b64encode(p['image']).decode('utf-8')
+        return products
+    except Exception as e:
+        logger.error(f"Error getting products: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/products")
+def add_product(item: ProductCreate):
+    try:
+        data = item.model_dump()
+        # Decode Base64 image to bytes
+        if data.get('image'):
+            try:
+                data['image'] = base64.b64decode(data['image'])
+            except Exception:
+                 data['image'] = None # Handle bad base64
+        
+        product_ops.create_product(data, table=PRODUCTS_TABLE_NAME)
+        return {"message": "Product added"}
+    except Exception as e:
+        logger.error(f"Error adding product: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/products/{p_id}")
+def update_product(p_id: int, item: ProductUpdate):
+    try:
+        data = item.model_dump(exclude_unset=True)
+        if data.get('image'):
+             try:
+                data['image'] = base64.b64decode(data['image'])
+             except Exception:
+                 data['image'] = None
+
+        product_ops.update_product(p_id, data, table=PRODUCTS_TABLE_NAME)
+        return {"message": "Product updated"}
+    except Exception as e:
+        logger.error(f"Error updating product: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/products/{p_id}")
+def delete_product(p_id: int):
+    try:
+        product_ops.delete_product(p_id, table=PRODUCTS_TABLE_NAME)
+        return {"message": "Product deleted"}
+    except Exception as e:
+        logger.error(f"Error deleting product: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))

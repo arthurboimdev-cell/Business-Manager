@@ -16,6 +16,7 @@ def mock_controller_no_analytics():
         m.setattr("gui.controller.SummaryFrame", MagicMock())
         m.setattr("gui.controller.AnalyticsFrame", MagicMock())
         m.setattr("gui.controller.TransactionModel", MagicMock())
+        m.setattr("gui.controller.ProductsTab", MagicMock())
         
         # Patch FEATURES to disable analytics
         features = {
@@ -39,6 +40,7 @@ def mock_controller_no_summary():
         m.setattr("gui.controller.SummaryFrame", MagicMock())
         m.setattr("gui.controller.AnalyticsFrame", MagicMock())
         m.setattr("gui.controller.TransactionModel", MagicMock())
+        m.setattr("gui.controller.ProductsTab", MagicMock())
         
         features = {
             "analytics": True,
@@ -84,6 +86,7 @@ def test_features_passed_to_tree_frame():
         m.setattr("gui.controller.SummaryFrame", MagicMock())
         m.setattr("gui.controller.AnalyticsFrame", MagicMock())
         m.setattr("gui.controller.TransactionModel", MagicMock())
+        m.setattr("gui.controller.ProductsTab", MagicMock())
         
         custom_features = {"search": False, "export_csv": False, "analytics": True, "summary_stats": True}
         m.setattr("gui.controller.FEATURES", custom_features)

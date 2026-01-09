@@ -25,8 +25,14 @@ def mock_view():
                                     'summary': mock_summary_cls,
                                     'analytics': mock_analytics_cls,
                                     'mb': mock_mb,
+                                    'mb': mock_mb,
                                     'fd': mock_fd
                                         }
+
+@pytest.fixture(autouse=True)
+def mock_products_tab():
+    with patch('gui.controller.ProductsTab') as mock:
+        yield mock
 
 @pytest.fixture
 def mock_model():

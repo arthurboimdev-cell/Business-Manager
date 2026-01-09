@@ -6,6 +6,8 @@ TEST_TABLE = "transactions_test"
 
 from db.init_db import init_db
 
+from config.config import TRANSACTIONS_SCHEMA
+
 # ---------------- FIXTURE: clean table before each test ----------------
 @pytest.fixture(autouse=True)
 def clean_table():
@@ -17,7 +19,7 @@ def clean_table():
     cursor.close()
     conn.close()
     
-    init_db(TEST_TABLE)
+    init_db(TEST_TABLE, TRANSACTIONS_SCHEMA)
     
     conn = get_db_connection()
     cursor = conn.cursor()

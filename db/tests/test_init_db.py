@@ -29,16 +29,16 @@ def test_init_db_table_missing():
         # Patch DB_SCHEMA to ensure it's not empty
         test_schema = {"col1": "INT"}
         
-        with patch("db.init_db.DB_SCHEMA", test_schema):
-            init_db("missing_table")
-            
-            # verify execute called with valid SQL
-            call_args = mock_cursor.execute.call_args_list
-            # First call is SHOW TABLES
-            assert "SHOW TABLES" in call_args[0][0][0]
-            # Second call should be CREATE TABLE
-            create_query = call_args[1][0][0]
-            assert "CREATE TABLE" in create_query
-            assert "col1 INT" in create_query
-            
-            mock_conn.return_value.commit.assert_called_once()
+        # init_db now takes schema as arg
+        init_db("missing_table", test_schema)
+        
+        # verify execute called with valid SQL
+        call_args = mock_cursor.execute.call_args_list
+        # First call is SHOW TABLES
+        assert "SHOW TABLES" in call_args[0][0][0]
+        # Second call should be CREATE TABLE
+        create_query = call_args[1][0][0]
+        assert "CREATE TABLE" in create_query
+        assert "col1 INT" in create_query
+        
+        mock_conn.return_value.commit.assert_called_once()

@@ -5,7 +5,7 @@ import os
 import multiprocessing
 import uvicorn
 from gui.controller import TransactionController
-from config.config import TABLE_NAME, SERVER_HOST, SERVER_PORT
+from config.config import TABLE_NAME, SERVER_HOST, SERVER_PORT, TRANSACTIONS_SCHEMA, PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA, MATERIALS_TABLE, MATERIALS_SCHEMA
 from db.init_db import init_db
 
 def start_server():
@@ -41,7 +41,9 @@ if __name__ == "__main__":
     elif "--client" in sys.argv:
         # 2. Run Client Only (Expects server running elsewhere)
         print("Starting GUI (Client Only)...")
-        init_db(TABLE_NAME) 
+        init_db(TABLE_NAME, TRANSACTIONS_SCHEMA)
+        init_db(PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA) 
+        init_db(MATERIALS_TABLE, MATERIALS_SCHEMA) 
         try:
             app = TransactionController(TABLE_NAME)
             app.run()
@@ -50,7 +52,9 @@ if __name__ == "__main__":
 
     else:
         # 3. Default: Run Both (Server + Client)
-        init_db(TABLE_NAME)
+        init_db(TABLE_NAME, TRANSACTIONS_SCHEMA)
+        init_db(PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA)
+        init_db(MATERIALS_TABLE, MATERIALS_SCHEMA)
         
         print("Starting AurumCandles Server...")
         server_process = start_server()

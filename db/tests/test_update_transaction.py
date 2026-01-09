@@ -4,14 +4,19 @@ from db.db_connection import get_db_connection
 
 TEST_TABLE = "transactions_test"
 
+from db.init_db import init_db
+from config.config import TRANSACTIONS_SCHEMA
+
 @pytest.fixture(autouse=True)
 def clean_table():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute(f"DELETE FROM {TEST_TABLE}")
+    cursor.execute(f"DROP TABLE IF EXISTS {TEST_TABLE}")
     conn.commit()
     cursor.close()
     conn.close()
+    
+    init_db(TEST_TABLE, TRANSACTIONS_SCHEMA)
     yield
     conn = get_db_connection()
     cursor = conn.cursor()

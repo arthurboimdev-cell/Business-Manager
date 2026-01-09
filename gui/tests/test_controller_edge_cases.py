@@ -11,10 +11,11 @@ def mock_controller():
                     with patch('gui.controller.TreeFrame', MagicMock()):
                          with patch('gui.controller.SummaryFrame', MagicMock()):
                             with patch('gui.controller.AnalyticsFrame', MagicMock()):
-                                ctrl = TransactionController("test_table")
-                                ctrl.view = MagicMock()
-                                ctrl.model = MagicMock()
-                                return ctrl
+                                with patch('gui.controller.ProductsTab', MagicMock()):
+                                    ctrl = TransactionController("test_table")
+                                    ctrl.view = MagicMock()
+                                    ctrl.model = MagicMock()
+                                    return ctrl
 
 def test_add_transaction_empty_fields(mock_controller):
     """Test that adding transaction with empty numeric fields shows error"""
@@ -24,11 +25,6 @@ def test_add_transaction_empty_fields(mock_controller):
     }
     
     with patch('tkinter.messagebox.showerror') as mock_error:
-        # Pass the data directly as the controller's add_transaction takes data arg,
-        # OR mock input_frame.get_data if the controller calls it?
-        # Controller: def add_transaction(self, data):
-        # so it expects data passed in.
-        
         data = mock_controller.view.input_frame.get_data.return_value
         mock_controller.add_transaction(data)
         
@@ -70,6 +66,4 @@ def test_export_to_csv_success(mock_controller):
                 mock_controller.export_csv()
                 
                 # Verify header written
-                # We expect TREE_COLUMNS which are usually ['date', 'description', ...]
-                # The exact verification depends on TREE_COLUMNS content in config
                 mock_writer.writerow.assert_called()

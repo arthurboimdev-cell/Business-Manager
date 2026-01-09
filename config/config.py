@@ -58,8 +58,40 @@ mysql_config = {
 # Default Defaults (Fallback)
 defaults = {
     "app": {"title": "Business Manager", "theme": "superhero"},
-    "data": {"table_name": "transactions", "test_table": "transactions_test", 
-             "columns": ["date", "description", "quantity", "price", "transaction_type", "total", "supplier"]},
+    "data": {
+        "transactions_table": "transactions",
+        "transactions_test_table": "transactions_test",
+        "products_table": "products",
+        "products_test_table": "products_test",
+        "transaction_columns": ["date", "description", "quantity", "price", "transaction_type", "total", "supplier"],
+        "transactions_schema": {
+            "id": "INT AUTO_INCREMENT PRIMARY KEY",
+            "transaction_date": "DATE",
+            "description": "VARCHAR(255)",
+            "quantity": "INT",
+            "price": "DECIMAL(10, 2)",
+            "transaction_type": "VARCHAR(50)",
+            "total": "DECIMAL(10, 2)",
+            "supplier": "VARCHAR(255)"
+        },
+        "products_schema": {
+            "id": "INT AUTO_INCREMENT PRIMARY KEY",
+            "name": "VARCHAR(255)",
+            "description": "TEXT",
+            "weight_g": "DECIMAL(10, 2)",
+            "length_cm": "DECIMAL(10, 2)",
+            "width_cm": "DECIMAL(10, 2)",
+            "height_cm": "DECIMAL(10, 2)",
+            "wax_type": "VARCHAR(100)",
+            "wax_weight_g": "DECIMAL(10, 2)",
+            "wick_type": "VARCHAR(100)",
+            "container_type": "VARCHAR(100)",
+            "container_details": "VARCHAR(255)",
+            "box_price": "DECIMAL(10, 2)",
+            "wrap_price": "DECIMAL(10, 2)",
+            "image": "LONGBLOB"
+        }
+    },
     "ui": {
         "labels": {
             "date": "Date:", "description": "Description:", "quantity": "Qty:", 
@@ -98,14 +130,21 @@ import sys
 is_frozen = getattr(sys, 'frozen', False)
 
 if is_frozen:
-     TABLE_NAME = config_data["data"]["table_name"]
+     TABLE_NAME = config_data["data"]["transactions_table"]
+     PRODUCTS_TABLE_NAME = config_data["data"]["products_table"]
 else:
-     TABLE_NAME = config_data["data"]["test_table"]
+     TABLE_NAME = config_data["data"]["transactions_test_table"]
+     PRODUCTS_TABLE_NAME = config_data["data"]["products_test_table"]
 
-TEST_TABLE = config_data["data"]["test_table"]
-DB_SCHEMA = config_data["data"].get("db_schema", {})
+TEST_TABLE = config_data["data"]["transactions_test_table"]
+DB_SCHEMA = config_data["data"].get("transactions_schema", {}) # Backward compat
+TRANSACTIONS_SCHEMA = config_data["data"].get("transactions_schema", {})
+PRODUCTS_SCHEMA = config_data["data"].get("products_schema", {})
+MATERIALS_SCHEMA = config_data["data"].get("materials_schema", {})
+MATERIALS_TABLE = config_data["data"].get("materials_table", "materials")
+
 WINDOW_TITLE = config_data["app"]["title"]
-TREE_COLUMNS = config_data["data"]["columns"]
+TREE_COLUMNS = config_data["data"]["transaction_columns"]
 TRANSACTION_TYPES = config_data["transaction_types"]
 
 # UI Text Constants
