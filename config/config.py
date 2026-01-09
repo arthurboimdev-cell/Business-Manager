@@ -94,6 +94,8 @@ defaults = {
         "products_schema": {
             "id": "INT AUTO_INCREMENT PRIMARY KEY",
             "name": "VARCHAR(255)",
+            "sku": "VARCHAR(50)",
+            "upc": "VARCHAR(50)",
             "description": "TEXT",
             "weight_g": "DECIMAL(10, 2)",
             "length_cm": "DECIMAL(10, 2)",

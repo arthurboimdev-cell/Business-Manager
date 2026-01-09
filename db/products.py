@@ -14,7 +14,7 @@ def create_product(product_data, table=PRODUCTS_TABLE_NAME):
     # but strict adherence to schema is safer.
     
     columns = [
-        "name", "description", "weight_g", "length_cm", "width_cm", "height_cm",
+        "name", "sku", "upc", "description", "weight_g", "length_cm", "width_cm", "height_cm",
         "wax_type", "wax_weight_g", "wick_type", "container_type", "container_details",
         "box_price", "wrap_price", 'image'
     ]
@@ -70,7 +70,7 @@ def update_product(product_id, product_data, table=PRODUCTS_TABLE_NAME):
     cursor = conn.cursor()
     
     columns = [
-        "name", "description", "weight_g", "length_cm", "width_cm", "height_cm",
+        "name", "sku", "upc", "description", "weight_g", "length_cm", "width_cm", "height_cm",
         "wax_type", "wax_weight_g", "wick_type", "container_type", "container_details",
         "box_price", "wrap_price", "image"
     ]

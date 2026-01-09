@@ -54,9 +54,18 @@ class ProductsTab(tk.Frame):
         self.entry_desc = tk.Entry(frame_general, width=25)
         self.entry_desc.grid(row=2, column=1, columnspan=2, padx=2, sticky="w")
         
-        tk.Label(frame_general, text="Units in stock:").grid(row=3, column=0, sticky="w", pady=2)
+        # SKU / UPC
+        tk.Label(frame_general, text="SKU:").grid(row=3, column=0, sticky="w")
+        self.entry_sku = tk.Entry(frame_general, width=12)
+        self.entry_sku.grid(row=3, column=1, sticky="w", padx=2)
+        
+        tk.Label(frame_general, text="UPC:").grid(row=3, column=2, sticky="w")
+        self.entry_upc = tk.Entry(frame_general, width=12)
+        self.entry_upc.grid(row=3, column=3, sticky="w", padx=2)
+        
+        tk.Label(frame_general, text="Units in stock:").grid(row=4, column=0, sticky="w", pady=2)
         self.entry_stock = tk.Entry(frame_general, width=10)
-        self.entry_stock.grid(row=3, column=1, sticky="w", padx=2, pady=2)
+        self.entry_stock.grid(row=4, column=1, sticky="w", padx=2, pady=2)
 
         # --- 2. Physical Specs ---
         frame_specs = tk.LabelFrame(self.left_panel, text="2. Physical Specs", padx=5, pady=5)
@@ -107,16 +116,15 @@ class ProductsTab(tk.Frame):
         self.combo_container = ttk.Combobox(frame_bom, width=15)
         self.combo_container.grid(row=3, column=1, padx=2)
         self.combo_container.bind("<<ComboboxSelected>>", self.calculate_cogs)
-
-        # --- 4. Financials ---
-        frame_fin = tk.LabelFrame(self.left_panel, text="4. Financials", padx=5, pady=5)
-        frame_fin.pack(fill="x", pady=2)
         
-        tk.Label(frame_fin, text="Box ($):").pack(side="left")
-        self.entry_box = tk.Entry(frame_fin, width=6); self.entry_box.pack(side="left", padx=2)
+        # Box & Wrap (Moved to BOM)
+        tk.Label(frame_bom, text="Box ($):").grid(row=4, column=0, sticky="w")
+        self.entry_box = tk.Entry(frame_bom, width=6)
+        self.entry_box.grid(row=4, column=1, padx=2, sticky="w")
         
-        tk.Label(frame_fin, text="Wrap ($):").pack(side="left")
-        self.entry_wrap = tk.Entry(frame_fin, width=6); self.entry_wrap.pack(side="left", padx=2)
+        tk.Label(frame_bom, text="Wrap ($):").grid(row=4, column=2, sticky="w")
+        self.entry_wrap = tk.Entry(frame_bom, width=6)
+        self.entry_wrap.grid(row=4, column=3, padx=2, sticky="w")
         
         self.entry_box.bind("<KeyRelease>", self.calculate_cogs)
         self.entry_wrap.bind("<KeyRelease>", self.calculate_cogs)
@@ -289,6 +297,8 @@ class ProductsTab(tk.Frame):
             total_cost = self.calculate_cogs()
             data = {
                 "name": name,
+                "sku": self.entry_sku.get().strip(),
+                "upc": self.entry_upc.get().strip(),
                 "description": self.entry_desc.get(),
                 "stock_quantity": int(self.entry_stock.get() or 0),
                 "length_cm": float(self.entry_l.get() or 0),
@@ -367,6 +377,8 @@ class ProductsTab(tk.Frame):
             self.clear_inputs()
             self.entry_id.insert(0, str(p_id))
             self.entry_name.insert(0, product.get('name', ''))
+            self.entry_sku.insert(0, product.get('sku') or '')
+            self.entry_upc.insert(0, product.get('upc') or '')
             self.entry_desc.insert(0, product.get('description') or '')
             self.entry_stock.insert(0, str(product.get('stock_quantity', 0)))
             self.entry_l.insert(0, str(product.get('length_cm', 0)))
@@ -407,6 +419,8 @@ class ProductsTab(tk.Frame):
     def clear_inputs(self):
         self.entry_id.delete(0, tk.END)
         self.entry_name.delete(0, tk.END)
+        self.entry_sku.delete(0, tk.END)
+        self.entry_upc.delete(0, tk.END)
         self.entry_desc.delete(0, tk.END)
         self.entry_stock.delete(0, tk.END)
         self.entry_l.delete(0, tk.END)

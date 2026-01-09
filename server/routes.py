@@ -178,6 +178,8 @@ import base64
 
 class ProductCreate(BaseModel):
     name: str
+    sku: Optional[str] = None
+    upc: Optional[str] = None
     description: Optional[str] = None
     stock_quantity: Optional[int] = 0
     weight_g: Optional[float] = 0.0
@@ -197,6 +199,8 @@ class ProductCreate(BaseModel):
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
+    sku: Optional[str] = None
+    upc: Optional[str] = None
     description: Optional[str] = None
     stock_quantity: Optional[int] = None
     weight_g: Optional[float] = None

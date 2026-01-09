@@ -12,20 +12,17 @@ client = TestClient(app)
 @pytest.fixture(scope="module", autouse=True)
 def setup_database():
     # Setup
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"DROP TABLE IF EXISTS {PRODUCTS_TABLE_NAME}")
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    # Setup
     init_db(PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA)
     
-    # Override the table name in the DB ops for testing? 
-    # Since the routes use the constant from config, we catch 22: modifying global config is risky in parallel tests 
-    # but okay here for sequential execution.
-    # A better approach is to mock the table name or ensure the route uses a dependency we can override.
-    # For this simplified app, we will rely on the fact that `config.py` logic might use `products_test` 
-    # if we are not frozen.
-    # Let's check `config.py`:
-    # if is_frozen: TABLE... else: PRODUCTS_TABLE_NAME = config_data["data"]["products_test_table"]
-    
-    # So if we run this from pytest (not frozen), it uses `products_test`. 
-    # We should just ensure `products_test` is clean.
-    
+    # Ensure it's clean (redundant after drop/create but safe)
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(f"TRUNCATE TABLE {PRODUCTS_TABLE_NAME}")
@@ -46,6 +43,8 @@ def setup_database():
 def test_add_product():
     product_data = {
         "name": "Test Candle",
+        "sku": "SKU-123",
+        "upc": "UPC-456",
         "description": "A test candle",
         "weight_g": 100.0,
         "length_cm": 10.0,
@@ -71,6 +70,8 @@ def test_get_products():
     products = response.json()
     assert len(products) > 0
     assert products[0]["name"] == "Test Candle"
+    assert products[0]["sku"] == "SKU-123"
+    assert products[0]["upc"] == "UPC-456"
 
 def test_add_product_with_image():
     # Create a dummy small image bytes
