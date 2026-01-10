@@ -106,6 +106,11 @@ class MaterialsTab(tk.Frame):
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
         
         tk.Button(self.right_panel, text="Delete Selected", command=self.delete_material, bg="#FF5252", fg="white").pack(pady=10)
+        tk.Button(self.right_panel, text="Refresh List", command=self.refresh_list).pack(pady=5)
+
+    def refresh(self):
+        """Standard interface for controller calls"""
+        self.refresh_list()
 
     def refresh_list(self):
         for item in self.tree.get_children():

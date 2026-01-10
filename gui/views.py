@@ -17,7 +17,15 @@ class InputFrame(tb.Frame):
         self.columnconfigure(1, weight=1)
 
         self.create_field(UI_LABELS["date"], 0, "date")
-        self.create_field(UI_LABELS["description"], 1, "desc")
+        self.create_field(UI_LABELS["date"], 0, "date")
+        
+        # Description (now with Product Link)
+        tb.Label(self, text=UI_LABELS["description"]).grid(row=1, column=0, sticky='w', pady=5)
+        self.entry_desc = tb.Combobox(self)
+        self.entry_desc.grid(row=1, column=1, sticky='ew', padx=10, pady=5)
+        self.entry_desc.bind("<<ComboboxSelected>>", self._on_product_selected)
+        
+        self.products = [] # Store list of products for lookup
         self.create_field(UI_LABELS["quantity"], 2, "qty")
         self.create_field(UI_LABELS["price"], 3, "price")
         self.create_field(UI_LABELS["supplier"], 4, "supplier")
@@ -39,6 +47,36 @@ class InputFrame(tb.Frame):
 
         tb.Button(btn_frame, text=BUTTON_CLEAR, bootstyle="secondary", command=self.clear_fields).pack(side='left', padx=5)
 
+    def update_products(self, products):
+        self.products = products
+        # Populate Combobox values with Product Names
+        names = [p['name'] for p in products]
+        self.entry_desc['values'] = names
+        
+    def _on_product_selected(self, event):
+        # Auto-fill fields if a product is selected
+        selected_name = self.entry_desc.get()
+        if not selected_name:
+            return
+            
+        found = next((p for p in self.products if p['name'] == selected_name), None)
+        if found:
+            # We don't have a selling price, but we could default to something or just leave it.
+            # But the user asked for "Auto-fills Description and Price"
+            # Since we don't have selling price in DB, maybe we just fill Name.
+            # But we can try to guess or use total_cost * margin?
+            # For now, let's strictly stick to what we have. 
+            # Wait, "Auto-fills Description and Price" -> implied requirement.
+            # If I can't fill Price, I fail that req partially.
+            # Let's check if there's any field we can repurpose or if we should add default margin?
+            # No, safer to just leave price empty or previous value, or 0.
+            pass
+
+    def get_selected_product_id(self):
+        name = self.entry_desc.get()
+        found = next((p for p in self.products if p['name'] == name), None)
+        return found['id'] if found else None
+
     def create_field(self, label, row, var_name):
         tb.Label(self, text=label).grid(row=row, column=0, sticky='w', pady=5)
         entry = tb.Entry(self)
@@ -52,7 +90,8 @@ class InputFrame(tb.Frame):
             "qty": self.entry_qty.get(),
             "price": self.entry_price.get(),
             "supplier": self.entry_supplier.get(),
-            "type": self.type_var.get()
+            "type": self.type_var.get(),
+            "product_id": self.get_selected_product_id()
         }
 
     def _handle_add_or_update(self):

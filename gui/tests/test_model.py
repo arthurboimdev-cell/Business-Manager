@@ -21,7 +21,7 @@ def test_model_add_and_get(mock_api):
     rows = model.get_all_transactions()
     
     # Verify API called
-    mock_api.add_transaction.assert_called_with('2025-01-01', 'Model Test', 5, 10.0, 'income', None)
+    mock_api.add_transaction.assert_called_with('2025-01-01', 'Model Test', 5, 10.0, 'income', None, None)
     mock_api.get_all_transactions.assert_called_once()
     
     assert len(rows) == 1
@@ -36,7 +36,7 @@ def test_model_update(mock_api):
     
     model.update_transaction(t_id, '2025-01-01', 'Updated', 2, 2.0, 'expense')
     
-    mock_api.update_transaction.assert_called_with(123, '2025-01-01', 'Updated', 2, 2.0, 'expense', None)
+    mock_api.update_transaction.assert_called_with(123, '2025-01-01', 'Updated', 2, 2.0, 'expense', None, None)
 
 def test_model_delete(mock_api):
     model = TransactionModel(TEST_TABLE)

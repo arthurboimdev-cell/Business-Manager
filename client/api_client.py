@@ -15,14 +15,15 @@ class APIClient:
             return []
 
     @staticmethod
-    def add_transaction(date, desc, qty, price, t_type, supplier=None):
+    def add_transaction(date, desc, qty, price, t_type, supplier=None, product_id=None):
         payload = {
             "date": date,
             "description": desc,
             "quantity": qty,
             "price": price,
             "type": t_type,
-            "supplier": supplier
+            "supplier": supplier,
+            "product_id": product_id
         }
         try:
             response = requests.post(f"{APIClient.BASE_URL}/transactions", json=payload)
@@ -33,14 +34,15 @@ class APIClient:
             raise e
 
     @staticmethod
-    def update_transaction(t_id, date, desc, qty, price, t_type, supplier=None):
+    def update_transaction(t_id, date, desc, qty, price, t_type, supplier=None, product_id=None):
         payload = {
             "date": date,
             "description": desc,
             "quantity": qty,
             "price": price,
             "type": t_type,
-            "supplier": supplier
+            "supplier": supplier,
+            "product_id": product_id
         }
         try:
             response = requests.put(f"{APIClient.BASE_URL}/transactions/{t_id}", json=payload)

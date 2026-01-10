@@ -89,7 +89,8 @@ defaults = {
             "price": "DECIMAL(10, 2)",
             "transaction_type": "VARCHAR(50)",
             "total": "DECIMAL(10, 2)",
-            "supplier": "VARCHAR(255)"
+            "supplier": "VARCHAR(255)",
+            "product_id": "INT DEFAULT NULL"
         },
         "products_schema": {
             "id": "INT AUTO_INCREMENT PRIMARY KEY",

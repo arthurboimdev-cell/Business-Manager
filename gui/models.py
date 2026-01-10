@@ -12,11 +12,14 @@ class TransactionModel:
     def get_all_transactions(self):
         return APIClient.get_all_transactions()
 
-    def add_transaction(self, date, desc, qty, price, t_type, supplier=None):
-        return APIClient.add_transaction(date, desc, qty, price, t_type, supplier)
+    def add_transaction(self, date, desc, qty, price, t_type, supplier=None, product_id=None):
+        return APIClient.add_transaction(date, desc, qty, price, t_type, supplier, product_id)
 
     def delete_transaction(self, t_id):
         APIClient.delete_transaction(t_id)
     
-    def update_transaction(self, t_id, date, desc, qty, price, t_type, supplier=None):
-        APIClient.update_transaction(t_id, date, desc, qty, price, t_type, supplier)
+    def update_transaction(self, t_id, date, desc, qty, price, t_type, supplier=None, product_id=None):
+        APIClient.update_transaction(t_id, date, desc, qty, price, t_type, supplier, product_id)
+
+    def get_products(self):
+        return APIClient.get_products()

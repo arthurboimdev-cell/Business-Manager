@@ -144,6 +144,20 @@ class TransactionController:
         # Update Charts (Always use All Transactions or Filtered? Ideally Filtered matches view)
         if self.analytics_frame:
             self.analytics_frame.refresh_charts(display_transactions)
+            
+        # Update Product List in InputFrame (for inventory linking)
+        try:
+            products = self.model.get_products()
+            self.input_frame.update_products(products)
+        except Exception as e:
+            print(f"Error fetching products: {e}")
+
+        # GLOBAL REFRESH: Ensure all tabs are up to date
+        if hasattr(self, 'products_tab'):
+            self.products_tab.refresh_prods_and_mats()
+            
+        if hasattr(self, 'materials_tab'):
+            self.materials_tab.refresh()
 
 
     def sort_transactions(self, col):
@@ -168,7 +182,7 @@ class TransactionController:
         supplier = TransactionUtils.normalize_text(data['supplier'])
 
         self.model.add_transaction(
-            data['date'], desc, qty, price, data['type'], supplier
+            data['date'], desc, qty, price, data['type'], supplier, data.get('product_id')
         )
         self.input_frame.clear_fields()
         self.refresh_ui()
@@ -185,7 +199,7 @@ class TransactionController:
         supplier = TransactionUtils.normalize_text(data['supplier'])
 
         self.model.update_transaction(
-            t_id, data['date'], desc, qty, price, data['type'], supplier
+            t_id, data['date'], desc, qty, price, data['type'], supplier, data.get('product_id')
         )
         self.input_frame.clear_fields()
         self.refresh_ui()

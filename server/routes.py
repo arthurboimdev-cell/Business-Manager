@@ -21,6 +21,7 @@ class TransactionCreate(BaseModel):
     price: float
     type: str
     supplier: Optional[str] = ""
+    product_id: Optional[int] = None
 
 class TransactionUpdate(BaseModel):
     date: str
@@ -52,8 +53,41 @@ def add_transaction(item: TransactionCreate):
             price=item.price,
             transaction_type=item.type,
             supplier=item.supplier,
+            product_id=item.product_id,
             table=TABLE_NAME
         )
+        
+        # Link to Inventory: Deduct Stock
+        if item.product_id:
+             # If income (sale), deduct stock. 
+             # logic: quantity sold = deduction
+             # If expense (restock?), maybe add? Default assumption: Income = Sale.
+             # User Request: "When adding a 'Income' transaction... Deduct Stock"
+             if item.type.lower() == 'income':
+                 product_ops.update_stock(item.product_id, -item.quantity, table=PRODUCTS_TABLE_NAME)
+                 
+                 # FEATURE: Material Deduction
+                 # Fetch product details to know what to deduct
+                 product = product_ops.get_product(item.product_id, table=PRODUCTS_TABLE_NAME)
+                 if product:
+                     # 1. Wax
+                     if product.get('wax_type') and product.get('wax_weight_g'):
+                         total_wax = float(product['wax_weight_g']) * item.quantity
+                         material_ops.deduct_stock_by_name(product['wax_type'], total_wax, table=MATERIALS_TABLE)
+                         
+                     # 2. Wick
+                     if product.get('wick_type'):
+                         total_wick = 1.0 * item.quantity # Assuming 1 wick per unit
+                         material_ops.deduct_stock_by_name(product['wick_type'], total_wick, table=MATERIALS_TABLE)
+                         
+                     # 3. Container
+                     if product.get('container_type'):
+                         total_container = 1.0 * item.quantity 
+                         material_ops.deduct_stock_by_name(product['container_type'], total_container, table=MATERIALS_TABLE)
+                         
+                     # 4. Fragrance (Optional, if we had connection. Schema implies fragrance_weight_g exists but no Type field yet)
+                     pass
+
         return {"id": new_id, "message": "Transaction added"}
     except ValueError as ve:
          raise HTTPException(status_code=400, detail=str(ve))

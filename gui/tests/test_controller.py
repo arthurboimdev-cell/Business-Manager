@@ -71,7 +71,7 @@ def test_add_transaction_success(mock_view, mock_model):
     
     # Check model called
     mock_model.add_transaction.assert_called_with(
-        "2025-01-01", "Test Item", 5, 10.0, "income", "Test Supplier"
+        "2025-01-01", "Test Item", 5, 10.0, "income", "Test Supplier", None
     )
     # Check UI refresh
     controller.input_frame.clear_fields.assert_called()
@@ -102,7 +102,7 @@ def test_update_transaction(mock_view, mock_model):
     controller.update_transaction(123, data)
     
     mock_model.update_transaction.assert_called_with(
-        123, "2025-01-01", "Updated", 3, 50.0, "expense", "New Supp"
+        123, "2025-01-01", "Updated", 3, 50.0, "expense", "New Supp", None
     )
     mock_view['mb'].showinfo.assert_called_with("Success", "Transaction Updated")
 

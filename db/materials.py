@@ -50,3 +50,33 @@ def delete_material(material_id, table=MATERIALS_TABLE):
     finally:
         cursor.close()
         conn.close()
+
+def deduct_stock_by_name(name, amount, table=MATERIALS_TABLE):
+    """
+    Find material by exact name (case-insensitive) and deduct quantity.
+    """
+    if not name:
+        return
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # 1. Find ID
+        cursor.execute(f"SELECT id, stock_quantity FROM {table} WHERE name = %s", (name,))
+        row = cursor.fetchone()
+        
+        if row:
+            m_id = row[0]
+            # 2. Update
+            cursor.execute(f"UPDATE {table} SET stock_quantity = stock_quantity - %s WHERE id = %s", (amount, m_id))
+            conn.commit()
+            return True, f"Deducted {amount} from {name}"
+        else:
+            return False, f"Material '{name}' not found"
+    except Exception as e:
+        print(f"Error deducting material stock: {e}")
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()

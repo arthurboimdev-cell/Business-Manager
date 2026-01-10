@@ -14,7 +14,7 @@ def create_product(product_data, table=PRODUCTS_TABLE_NAME):
     # but strict adherence to schema is safer.
     
     columns = [
-        "name", "sku", "upc", "description", "weight_g", "length_cm", "width_cm", "height_cm",
+        "name", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
         "wax_type", "wax_weight_g", "wick_type", "container_type", "container_details",
         "box_price", "wrap_price", 'image'
     ]
@@ -31,6 +31,7 @@ def create_product(product_data, table=PRODUCTS_TABLE_NAME):
     try:
         cursor.execute(sql, list(data.values()))
         conn.commit()
+        return cursor.lastrowid
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     finally:
@@ -70,7 +71,7 @@ def update_product(product_id, product_data, table=PRODUCTS_TABLE_NAME):
     cursor = conn.cursor()
     
     columns = [
-        "name", "sku", "upc", "description", "weight_g", "length_cm", "width_cm", "height_cm",
+        "name", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
         "wax_type", "wax_weight_g", "wick_type", "container_type", "container_details",
         "box_price", "wrap_price", "image"
     ]
@@ -101,6 +102,26 @@ def delete_product(product_id, table=PRODUCTS_TABLE_NAME):
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+    finally:
+        cursor.close()
+        conn.close()
+def update_stock(product_id: int, delta: int, table=PRODUCTS_TABLE_NAME):
+    """
+    Update product stock quantity. 
+    delta can be positive (add) or negative (deduct).
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # Check current stock first (optional, but good for validation)
+        # For now, just direct update
+        sql = f"UPDATE {table} SET stock_quantity = stock_quantity + %s WHERE id = %s"
+        cursor.execute(sql, (delta, product_id))
+        conn.commit()
+    except Exception as e:
+        print(f"Error updating stock: {e}")
+        conn.rollback()
+        raise e
     finally:
         cursor.close()
         conn.close()

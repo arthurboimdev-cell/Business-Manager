@@ -31,6 +31,7 @@
             "transaction_type": "VARCHAR(50)",
             "total": "DECIMAL(10, 2) GENERATED ALWAYS AS (quantity * price) STORED",
             "supplier": "VARCHAR(255)",
+            "product_id": "INT DEFAULT NULL",
             "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
         },
         "products_schema": {

@@ -11,6 +11,7 @@ def write_transaction(
     price,
     transaction_type,
     supplier=None,
+    product_id=None,
     table=TABLE_NAME
 ):
     if table not in ALLOWED_TABLES:
@@ -22,8 +23,8 @@ def write_transaction(
     try:
         query = f"""
             INSERT INTO {table}
-            (transaction_date, description, quantity, price, supplier, transaction_type)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            (transaction_date, description, quantity, price, supplier, transaction_type, product_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(query, (
             transaction_date,
@@ -31,7 +32,8 @@ def write_transaction(
             quantity,
             price,
             supplier,
-            transaction_type
+            transaction_type,
+            product_id
         ))
         conn.commit()
         return cursor.lastrowid
@@ -59,6 +61,7 @@ def read_transactions(table=TABLE_NAME):
                 total,
                 transaction_type,
                 supplier,
+                product_id,
                 created_at
             FROM {table}
             ORDER BY transaction_date DESC
