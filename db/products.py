@@ -16,7 +16,7 @@ def create_product(product_data, table=PRODUCTS_TABLE_NAME):
     columns = [
         "name", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
         "wax_type", "wax_weight_g", "wick_type", "container_type", "container_details",
-        "box_price", "wrap_price", 'image'
+        "box_price", "wrap_price", "business_card_cost", 'image'
     ]
     
     # Filter data to only valid columns
@@ -73,7 +73,7 @@ def update_product(product_id, product_data, table=PRODUCTS_TABLE_NAME):
     columns = [
         "name", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
         "wax_type", "wax_weight_g", "wick_type", "container_type", "container_details",
-        "box_price", "wrap_price", "image"
+        "box_price", "wrap_price", "business_card_cost", 'image'
     ]
     
     data = {k: v for k, v in product_data.items() if k in columns}

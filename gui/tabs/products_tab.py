@@ -126,8 +126,14 @@ class ProductsTab(tk.Frame):
         self.entry_wrap = tk.Entry(frame_bom, width=6)
         self.entry_wrap.grid(row=4, column=3, padx=2, sticky="w")
         
+        # Business Card
+        tk.Label(frame_bom, text="Biz Card ($):").grid(row=5, column=0, sticky="w")
+        self.entry_biz_card = tk.Entry(frame_bom, width=6)
+        self.entry_biz_card.grid(row=5, column=1, padx=2, sticky="w")
+
         self.entry_box.bind("<KeyRelease>", self.calculate_cogs)
         self.entry_wrap.bind("<KeyRelease>", self.calculate_cogs)
+        self.entry_biz_card.bind("<KeyRelease>", self.calculate_cogs)
 
         # Action Buttons
         btn_frame = tk.Frame(self.left_panel)
@@ -263,10 +269,14 @@ class ProductsTab(tk.Frame):
                 self.cogs_tree.insert("", "end", values=("Box/Pkg", "1 unit", f"${box}", f"${box:.2f}"))
                 total_cost += box
                 
-            wrap = float(self.entry_wrap.get() or 0)
             if wrap > 0:
                 self.cogs_tree.insert("", "end", values=("Label/Wrap", "1 unit", f"${wrap}", f"${wrap:.2f}"))
                 total_cost += wrap
+                
+            biz = float(self.entry_biz_card.get() or 0)
+            if biz > 0:
+                self.cogs_tree.insert("", "end", values=("Biz Card", "1 unit", f"${biz}", f"${biz:.2f}"))
+                total_cost += biz
         except ValueError: pass
 
         self.lbl_total_cogs.config(text=f"TOTAL COGS: ${total_cost:.2f}")
@@ -311,7 +321,9 @@ class ProductsTab(tk.Frame):
                 "wick_type": self.combo_wick.get(),
                 "container_type": self.combo_container.get(),
                 "box_price": float(self.entry_box.get() or 0),
+                "box_price": float(self.entry_box.get() or 0),
                 "wrap_price": float(self.entry_wrap.get() or 0),
+                "business_card_cost": float(self.entry_biz_card.get() or 0),
                 "total_cost": total_cost,
                 "image": self.image_data
             }
@@ -403,7 +415,9 @@ class ProductsTab(tk.Frame):
             self.combo_wick.set(product.get('wick_type') or '')
             self.combo_container.set(product.get('container_type') or '')
             self.entry_box.insert(0, str(product.get('box_price', 0)))
+            self.entry_box.insert(0, str(product.get('box_price', 0)))
             self.entry_wrap.insert(0, str(product.get('wrap_price', 0)))
+            self.entry_biz_card.insert(0, str(product.get('business_card_cost', 0)))
             
             # Recalculate COGS based on loaded values
             self.calculate_cogs()
@@ -434,7 +448,9 @@ class ProductsTab(tk.Frame):
         self.combo_wick.set('')
         self.combo_container.set('')
         self.entry_box.delete(0, tk.END)
+        self.entry_box.delete(0, tk.END)
         self.entry_wrap.delete(0, tk.END)
+        self.entry_biz_card.delete(0, tk.END)
         self.calculate_cogs()
 
     def select_image(self):

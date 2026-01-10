@@ -57,6 +57,7 @@ def test_add_product():
         "container_details": "Clear",
         "box_price": 1.5,
         "wrap_price": 0.5,
+        "business_card_cost": 0.10,
         "image": None
     }
     

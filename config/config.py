@@ -109,6 +109,7 @@ defaults = {
             "container_details": "VARCHAR(255)",
             "box_price": "DECIMAL(10, 2)",
             "wrap_price": "DECIMAL(10, 2)",
+            "business_card_cost": "DECIMAL(10, 2)",
             "image": "LONGBLOB"
         },
         "materials_table": "materials",
