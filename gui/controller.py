@@ -30,6 +30,8 @@ class TransactionController:
             on_edit=self.prep_edit_transaction,
             on_search=self.filter_transactions,
             on_export=self.export_csv,
+            on_import=self.import_csv,
+            on_refresh=self.refresh_ui, 
             on_sort=self.sort_transactions,
             features=FEATURES
         )
@@ -92,6 +94,38 @@ class TransactionController:
         if filename:
             DataService.export_to_csv(filename, self.model.get_all_transactions())
             messagebox.showinfo("Success", f"Exported to {filename}")
+
+    def import_csv(self):
+        filename = filedialog.askopenfilename(
+            filetypes=[("Data Files", "*.csv;*.xlsx"), ("CSV Files", "*.csv"), ("Excel Files", "*.xlsx"), ("All Files", "*.*")]
+        )
+        if filename:
+            current_data = self.model.get_all_transactions()
+            # Changed method name to import_data
+            new_items = DataService.import_data(filename, current_data)
+            
+            if not new_items:
+                messagebox.showinfo("Import", "No new transactions found to import.")
+                return
+            
+            # Add new items
+            count = 0
+            for item in new_items:
+                try:
+                    self.model.add_transaction(
+                        item['date'], 
+                        item['description'], 
+                        item['quantity'], 
+                        item['price'], 
+                        item['type'], 
+                        item['supplier']
+                    )
+                    count += 1
+                except Exception as e:
+                    print(f"Failed to add imported item: {item} - {e}")
+            
+            self.refresh_ui()
+            messagebox.showinfo("Success", f"Imported {count} new transactions.")
 
     def refresh_ui(self):
         all_transactions = self.model.get_all_transactions()

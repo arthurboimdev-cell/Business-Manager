@@ -44,3 +44,37 @@ def test_export_empty_list(tmp_path):
     # Should not create file or just do nothing? 
     # Current implementation returns if not transactions
     assert not os.path.exists(output_file)
+
+def test_import_data_csv(tmp_path):
+    # 1. Create dummy CSV
+    csv_file = tmp_path / "import.csv"
+    with open(csv_file, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(["Date", "Description", "Quantity", "Price", "Type", "Supplier"])
+        writer.writerow(["2025-01-01", "Imported Item", "5", "10.0", "Income", "Sup C"])
+        
+    # 2. Call Import
+    existing = []
+    items = DataService.import_data(str(csv_file), existing)
+    
+    assert len(items) == 1
+    assert items[0]['description'] == "Imported Item"
+    assert items[0]['price'] == 10.0
+
+def test_import_data_excel(tmp_path):
+    # 1. Create dummy Excel
+    import openpyxl
+    xlsx_file = tmp_path / "import.xlsx"
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(["Date", "Description", "Quantity", "Price", "Type", "Supplier"])
+    ws.append(["2025-01-02", "Excel Item", "3", "20.0", "Expense", "Sup D"])
+    wb.save(xlsx_file)
+    
+    # 2. Call Import
+    existing = []
+    items = DataService.import_data(str(xlsx_file), existing)
+    
+    assert len(items) == 1
+    assert items[0]['description'] == "Excel Item"
+    assert items[0]['quantity'] == 3

@@ -126,14 +126,15 @@ class InputFrame(tb.Frame):
 
 
 class TreeFrame(tb.Frame):
-    def __init__(self, parent, columns, on_delete, on_edit, on_search, on_export, on_sort, features=None):
+    def __init__(self, parent, columns, on_delete, on_edit, on_search, on_export, on_import, on_refresh, on_sort, features=None):
         super().__init__(parent, padding=10)
         self.features = features or {}
         self.on_delete = on_delete
         self.on_edit = on_edit
         self.on_search = on_search
-        self.on_search = on_search
         self.on_export = on_export
+        self.on_import = on_import
+        self.on_refresh = on_refresh
         self.on_sort = on_sort
 
         # -- Toolbar --
@@ -147,7 +148,13 @@ class TreeFrame(tb.Frame):
             self.entry_search = tb.Entry(toolbar, textvariable=self.search_var)
             self.entry_search.pack(side='left', padx=5)
             self.entry_search.bind("<KeyRelease>", lambda e: self._handle_search())
+            
+        # Refresh
+        tb.Button(toolbar, text="Refresh", bootstyle="info-outline", command=self.on_refresh).pack(side='left', padx=10)
 
+        # Import/Export
+        # Import
+        tb.Button(toolbar, text="Import CSV", bootstyle="warning-outline", command=self.on_import).pack(side='right', padx=5)
         # Export
         if self.features.get("export_csv", True):
             tb.Button(toolbar, text=UI_BUTTONS["export"], bootstyle="success-outline", command=self.on_export).pack(side='right', padx=5)
