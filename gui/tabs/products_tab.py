@@ -269,6 +269,7 @@ class ProductsTab(tk.Frame):
                 self.cogs_tree.insert("", "end", values=("Box/Pkg", "1 unit", f"${box}", f"${box:.2f}"))
                 total_cost += box
                 
+            wrap = float(self.entry_wrap.get() or 0)
             if wrap > 0:
                 self.cogs_tree.insert("", "end", values=("Label/Wrap", "1 unit", f"${wrap}", f"${wrap:.2f}"))
                 total_cost += wrap
