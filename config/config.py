@@ -72,6 +72,11 @@ mysql_config = {
     "database": db_name,
 }
 
+# Shipping Configuration
+CHIT_CHATS_CLIENT_ID = os.getenv("CHIT_CHATS_CLIENT_ID", "")
+CHIT_CHATS_ACCESS_TOKEN = os.getenv("CHIT_CHATS_ACCESS_TOKEN", "")
+CHIT_CHATS_API_URL = os.getenv("CHIT_CHATS_API_URL", "https://chitchats.com/api/v1")
+
 # Default Defaults (Fallback)
 defaults = {
     "app": {"title": "Business Manager", "theme": "superhero"},
