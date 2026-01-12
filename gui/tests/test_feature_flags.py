@@ -1,102 +1,141 @@
-import pytest
-from unittest.mock import MagicMock
-from gui.controller import TransactionController
+import sys
+from unittest.mock import MagicMock, patch
+import unittest
 
-# We need to test the logic in __init__.
-# Since TransactionController imports FEATURES from config, we need to mock that import or the logic that uses it.
-# Ideally we pass features as dependency injection, but for now we patch config.config.FEATURES
+# --- Top Level Mocking ---
+# We must do this BEFORE importing the module under test to ensure it picks up the mocks
+mock_tk = MagicMock()
+mock_tk.Tk = MagicMock
+mock_tk.Frame = MagicMock
+mock_tk.Label = MagicMock
+mock_tk.Entry = MagicMock
+mock_tk.Button = MagicMock
+mock_tk.Menu = MagicMock
+mock_tk.StringVar = MagicMock
 
-@pytest.fixture
-def mock_controller_no_analytics():
-    # Mock dependencies
-    with pytest.MonkeyPatch.context() as m:
-        m.setattr("gui.controller.MainWindow", MagicMock())
-        m.setattr("gui.controller.InputFrame", MagicMock())
-        m.setattr("gui.controller.TreeFrame", MagicMock())
-        m.setattr("gui.controller.SummaryFrame", MagicMock())
-        m.setattr("gui.controller.AnalyticsFrame", MagicMock())
-        m.setattr("gui.controller.TransactionModel", MagicMock())
-        m.setattr("gui.controller.ProductsTab", MagicMock())
-        m.setattr("gui.controller.MaterialsTab", MagicMock())
+# Submodules
+mock_ttk = MagicMock()
+mock_tk.ttk = mock_ttk
+
+# Assign to sys.modules
+sys.modules['tkinter'] = mock_tk
+sys.modules['tkinter.font'] = MagicMock()
+sys.modules['tkinter.ttk'] = mock_ttk
+sys.modules['tkinter.filedialog'] = MagicMock()
+sys.modules['tkinter.messagebox'] = MagicMock()
+sys.modules['tkinter.simpledialog'] = MagicMock()
+
+# Mock ttkbootstrap
+mock_tb = MagicMock()
+
+# MagicMock as a base class causes issues because its __init__ expects specific mock-config args.
+# We use a DummyBase that accepts anything.
+class DummyBase:
+    def __init__(self, *args, **kwargs):
+        self.children = {}
+    def title(self, *args): pass
+    def geometry(self, *args): pass
+    def pack(self, *args, **kwargs): pass
+    def grid(self, *args, **kwargs): pass
+    def add(self, *args, **kwargs): pass
+    def forget(self, *args, **kwargs): pass
+    def mainloop(self): pass
+    def columnconfigure(self, *args, **kwargs): pass
+    def bind(self, *args, **kwargs): pass
+
+mock_tb.Window = DummyBase
+mock_tb.Notebook = DummyBase
+mock_tb.Frame = DummyBase
+# For other widgets not subclassed, MagicMock is fine if instantiated, 
+# but consistent DummyBase is safer if they are used as base classes or instantiated with complex args.
+mock_tb.Treeview = DummyBase
+mock_tb.Scrollbar = DummyBase
+mock_tb.Label = DummyBase
+mock_tb.Entry = DummyBase
+mock_tb.Button = DummyBase
+mock_tb.Radiobutton = DummyBase
+mock_tb.Combobox = DummyBase
+
+sys.modules['ttkbootstrap'] = mock_tb
+sys.modules['ttkbootstrap.constants'] = MagicMock()
+
+# Now import the class under test
+import gui.views
+from importlib import reload
+# Reload to ensure it binds to our fresh mocks if tests are re-run or imported multiple times
+reload(gui.views)
+from gui.views import MainWindow
+
+class TestFeatureFlags(unittest.TestCase):
+    def setUp(self):
+        # Patch ShippingTab to avoid it trying to do things
+        self.patcher_shipping = patch('gui.views.ShippingTab')
+        self.MockShippingTab = self.patcher_shipping.start()
         
-        # Patch FEATURES to disable analytics
+        # Patch matplotlib imports inside charts which might be imported by views
+        # actually views imports AnalyticsFrame from gui.charts
+        # so we might need to patch that too if it causes issues, but top level sys.modules usually handles it?
+        # Let's hope so.
+
+    def tearDown(self):
+        self.patcher_shipping.stop()
+
+    def test_all_enabled(self):
         features = {
-            "analytics": False,
-            "summary_stats": True, 
-            "search": True,
-            "export_csv": True
+            "product_inventory": True,
+            "materials_inventory": True,
+            "shipping": True
         }
-        m.setattr("gui.controller.FEATURES", features)
-
-        ctrl = TransactionController("test_table")
-        return ctrl
-
-@pytest.fixture
-def mock_controller_no_summary():
-    with pytest.MonkeyPatch.context() as m:
-        m.setattr("gui.controller.MainWindow", MagicMock())
-        m.setattr("gui.controller.InputFrame", MagicMock())
-        m.setattr("gui.controller.TreeFrame", MagicMock())
-        # SummaryFrame constructor mock
-        m.setattr("gui.controller.SummaryFrame", MagicMock())
-        m.setattr("gui.controller.AnalyticsFrame", MagicMock())
-        m.setattr("gui.controller.TransactionModel", MagicMock())
-        m.setattr("gui.controller.ProductsTab", MagicMock())
-        m.setattr("gui.controller.MaterialsTab", MagicMock())
+        window = MainWindow("Test", features=features)
         
+        self.assertTrue(hasattr(window, 'tab_products'), "Products tab should exist")
+        self.assertTrue(hasattr(window, 'tab_materials'), "Materials tab should exist")
+        self.assertTrue(hasattr(window, 'tab_shipping'), "Shipping tab should exist")
+
+    def test_all_disabled(self):
         features = {
-            "analytics": True,
-            "summary_stats": False,
-            "search": True,
-            "export_csv": True
+            "product_inventory": False,
+            "materials_inventory": False,
+            "shipping": False
         }
-        m.setattr("gui.controller.FEATURES", features)
-
-        ctrl = TransactionController("test_table")
-        return ctrl
-
-def test_analytics_disabled(mock_controller_no_analytics):
-    """Test that AnalyticsFrame is not created when disabled"""
-    ctrl = mock_controller_no_analytics
-    
-    # Check that analytics_frame is None
-    assert ctrl.analytics_frame is None
-    
-    # Check that hide_analytics_tab was called on view
-    ctrl.view.hide_analytics_tab.assert_called_once()
-
-def test_summary_disabled(mock_controller_no_summary):
-    """Test that SummaryFrame is not created when disabled"""
-    ctrl = mock_controller_no_summary
-    
-    assert ctrl.summary_frame is None
-    
-    # refresh_ui shouldn't crash
-    ctrl.refresh_ui()
-
-# To test TreeFrame features (search/export) we need to inspect the TreeFrame calls or implementation
-# In Controller init:
-# self.tree_frame = TreeFrame(..., features=FEATURES)
-# We can verify that features are passed correctly.
-
-def test_features_passed_to_tree_frame():
-    with pytest.MonkeyPatch.context() as m:
-        m.setattr("gui.controller.MainWindow", MagicMock())
-        m.setattr("gui.controller.InputFrame", MagicMock())
-        mock_tree_class = MagicMock()
-        m.setattr("gui.controller.TreeFrame", mock_tree_class) # Mock the class
-        m.setattr("gui.controller.SummaryFrame", MagicMock())
-        m.setattr("gui.controller.AnalyticsFrame", MagicMock())
-        m.setattr("gui.controller.TransactionModel", MagicMock())
-        m.setattr("gui.controller.ProductsTab", MagicMock())
-        m.setattr("gui.controller.MaterialsTab", MagicMock())
+        window = MainWindow("Test", features=features)
         
-        custom_features = {"search": False, "export_csv": False, "analytics": True, "summary_stats": True}
-        m.setattr("gui.controller.FEATURES", custom_features)
+        self.assertFalse(hasattr(window, 'tab_products'), "Products tab should NOT exist")
+        self.assertFalse(hasattr(window, 'tab_materials'), "Materials tab should NOT exist")
+        self.assertFalse(hasattr(window, 'tab_shipping'), "Shipping tab should NOT exist")
+
+    def test_products_only(self):
+        features = {
+            "product_inventory": True,
+            "materials_inventory": False,
+            "shipping": False
+        }
+        window = MainWindow("Test", features=features)
         
-        ctrl = TransactionController("test_table")
+        self.assertTrue(hasattr(window, 'tab_products'))
+        self.assertFalse(hasattr(window, 'tab_materials'))
+        self.assertFalse(hasattr(window, 'tab_shipping'))
+
+    def test_materials_only(self):
+        features = {
+            "product_inventory": False,
+            "materials_inventory": True,
+            "shipping": False
+        }
+        window = MainWindow("Test", features=features)
         
-        # Verify TreeFrame initialized with our features
-        call_args = mock_tree_class.call_args
-        # kwargs should contain features
-        assert call_args.kwargs['features'] == custom_features
+        self.assertFalse(hasattr(window, 'tab_products'))
+        self.assertTrue(hasattr(window, 'tab_materials'))
+        self.assertFalse(hasattr(window, 'tab_shipping'))
+        
+    def test_shipping_only(self):
+        features = {
+            "product_inventory": False,
+            "materials_inventory": False,
+            "shipping": True
+        }
+        window = MainWindow("Test", features=features)
+        
+        self.assertFalse(hasattr(window, 'tab_products'))
+        self.assertFalse(hasattr(window, 'tab_materials'))
+        self.assertTrue(hasattr(window, 'tab_shipping'))

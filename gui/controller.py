@@ -11,7 +11,7 @@ from config.config import TREE_COLUMNS, TRANSACTION_TYPES, WINDOW_TITLE, FEATURE
 class TransactionController:
     def __init__(self, table_name):
         self.model = TransactionModel(table_name)
-        self.view = MainWindow(WINDOW_TITLE)
+        self.view = MainWindow(WINDOW_TITLE, features=FEATURES)
         
         # --- Tab 1: Transactions ---
         self.input_frame = InputFrame(
@@ -44,12 +44,14 @@ class TransactionController:
             self.summary_frame = None
 
         # --- Tab 2: Products ---
-        self.products_tab = ProductsTab(self.view.tab_products)
-        self.products_tab.pack(fill='both', expand=True, padx=10, pady=10)
+        if FEATURES.get("product_inventory", True):
+            self.products_tab = ProductsTab(self.view.tab_products)
+            self.products_tab.pack(fill='both', expand=True, padx=10, pady=10)
 
         # --- Tab 3: Materials ---
-        self.materials_tab = MaterialsTab(self.view.tab_materials)
-        self.materials_tab.pack(fill='both', expand=True, padx=10, pady=10)
+        if FEATURES.get("materials_inventory", True):
+            self.materials_tab = MaterialsTab(self.view.tab_materials)
+            self.materials_tab.pack(fill='both', expand=True, padx=10, pady=10)
 
         # --- Tab 4: Analytics ---
         if FEATURES.get("analytics", True):

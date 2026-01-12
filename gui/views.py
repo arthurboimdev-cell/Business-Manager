@@ -237,10 +237,11 @@ class SummaryFrame(tb.Frame):
 
 
 class MainWindow(tb.Window):
-    def __init__(self, title, theme="superhero"):
+    def __init__(self, title, theme="superhero", features=None):
         super().__init__(themename=theme)
         self.title(title)
         self.geometry("1100x800")
+        self.features = features or {}
         
         # Tabs
         self.notebook = tb.Notebook(self)
@@ -251,20 +252,23 @@ class MainWindow(tb.Window):
         self.notebook.add(self.tab_transactions, text="Transactions")
 
         # Tab 2: Products
-        self.tab_products = tb.Frame(self.notebook)
-        self.notebook.add(self.tab_products, text="Products")
+        if self.features.get("product_inventory", True):
+            self.tab_products = tb.Frame(self.notebook)
+            self.notebook.add(self.tab_products, text="Products")
 
         # Tab 3: Materials (NEW)
-        self.tab_materials = tb.Frame(self.notebook)
-        self.notebook.add(self.tab_materials, text="Materials")
+        if self.features.get("materials_inventory", True):
+            self.tab_materials = tb.Frame(self.notebook)
+            self.notebook.add(self.tab_materials, text="Materials")
 
         # Tab 4: Analytics
         self.tab_analytics = tb.Frame(self.notebook)
         self.notebook.add(self.tab_analytics, text="Analytics")
 
         # Tab 5: Shipping (NEW)
-        self.tab_shipping = ShippingTab(self.notebook)
-        self.notebook.add(self.tab_shipping, text="Shipping")
+        if self.features.get("shipping", True):
+            self.tab_shipping = ShippingTab(self.notebook)
+            self.notebook.add(self.tab_shipping, text="Shipping")
 
     def hide_analytics_tab(self):
         self.notebook.forget(self.tab_analytics)

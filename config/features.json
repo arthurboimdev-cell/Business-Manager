@@ -18,5 +18,17 @@
     "dark_mode_toggle": {
         "enabled": true,
         "description": "Enables the ability to toggle between Light and Dark themes (if UI controls are added)."
+    },
+    "product_inventory": {
+        "enabled": true,
+        "description": "Enables the 'Products' tab for managing inventory."
+    },
+    "materials_inventory": {
+        "enabled": true,
+        "description": "Enables the 'Materials' tab for managing raw materials."
+    },
+    "shipping": {
+        "enabled": true,
+        "description": "Enables the 'Shipping' tab for calculating rates."
     }
 }
