@@ -115,6 +115,8 @@ defaults = {
             "box_price": "DECIMAL(10, 2)",
             "wrap_price": "DECIMAL(10, 2)",
             "business_card_cost": "DECIMAL(10, 2)",
+            "labor_time": "INT DEFAULT 0",
+            "labor_rate": "DECIMAL(10, 2) DEFAULT 0.00",
             "image": "LONGBLOB"
         },
         "materials_table": "materials",
@@ -126,7 +128,8 @@ defaults = {
             "stock_quantity": "DECIMAL(10, 2) DEFAULT 0.00",
             "unit_cost": "DECIMAL(10, 4)",
             "unit_type": "VARCHAR(20)"
-        }
+        },
+        "default_labor_rate": 17.60
     },
     "ui": {
         "labels": {
@@ -201,3 +204,6 @@ SERVER_PORT = config_data.get("app", {}).get("server", {}).get("port", 8000)
 SERVER_URL = f"http://{SERVER_HOST}:{SERVER_PORT}"
 
 FEATURES = features_config
+
+# Labor Configuration
+DEFAULT_LABOR_RATE = float(os.getenv("DEFAULT_LABOR_RATE", 17.60))

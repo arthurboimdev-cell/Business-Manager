@@ -1,6 +1,7 @@
 from client.api_client import APIClient
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
+from config.config import DEFAULT_LABOR_RATE
 
 
 # Try to import PIL for image handling
@@ -130,10 +131,22 @@ class ProductsTab(tk.Frame):
         tk.Label(frame_bom, text="Biz Card ($):").grid(row=5, column=0, sticky="w")
         self.entry_biz_card = tk.Entry(frame_bom, width=6)
         self.entry_biz_card.grid(row=5, column=1, padx=2, sticky="w")
+        
+        # Labor
+        tk.Label(frame_bom, text="Labor Time (min):").grid(row=6, column=0, sticky="w")
+        self.entry_labor_time = tk.Entry(frame_bom, width=6)
+        self.entry_labor_time.grid(row=6, column=1, padx=2, sticky="w")
+        
+        tk.Label(frame_bom, text="Labor Rate ($/h):").grid(row=6, column=2, sticky="w")
+        self.entry_labor_rate = tk.Entry(frame_bom, width=6)
+        self.entry_labor_rate.grid(row=6, column=3, padx=2, sticky="w")
+        self.entry_labor_rate.insert(0, str(DEFAULT_LABOR_RATE))
 
         self.entry_box.bind("<KeyRelease>", self.calculate_cogs)
         self.entry_wrap.bind("<KeyRelease>", self.calculate_cogs)
         self.entry_biz_card.bind("<KeyRelease>", self.calculate_cogs)
+        self.entry_labor_time.bind("<KeyRelease>", self.calculate_cogs)
+        self.entry_labor_rate.bind("<KeyRelease>", self.calculate_cogs)
 
         # Action Buttons
         btn_frame = tk.Frame(self.left_panel)
@@ -279,6 +292,18 @@ class ProductsTab(tk.Frame):
                 self.cogs_tree.insert("", "end", values=("Biz Card", "1 unit", f"${biz}", f"${biz:.2f}"))
                 total_cost += biz
         except ValueError: pass
+        
+        # 6. Labor
+        try:
+            l_time = int(self.entry_labor_time.get() or 0)
+            l_rate = float(self.entry_labor_rate.get() or 0)
+            
+            if l_time > 0 and l_rate > 0:
+                # Cost = (Minutes / 60) * Rate
+                l_cost = (l_time / 60) * l_rate
+                self.cogs_tree.insert("", "end", values=("Labor", f"{l_time} min", f"${l_rate}/h", f"${l_cost:.2f}"))
+                total_cost += l_cost
+        except ValueError: pass
 
         self.lbl_total_cogs.config(text=f"TOTAL COGS: ${total_cost:.2f}")
         return total_cost
@@ -325,6 +350,8 @@ class ProductsTab(tk.Frame):
                 "box_price": float(self.entry_box.get() or 0),
                 "wrap_price": float(self.entry_wrap.get() or 0),
                 "business_card_cost": float(self.entry_biz_card.get() or 0),
+                "labor_time": int(self.entry_labor_time.get() or 0),
+                "labor_rate": float(self.entry_labor_rate.get() or 0),
                 "total_cost": total_cost,
                 "image": self.image_data
             }
@@ -419,6 +446,8 @@ class ProductsTab(tk.Frame):
             self.entry_box.insert(0, str(product.get('box_price', 0)))
             self.entry_wrap.insert(0, str(product.get('wrap_price', 0)))
             self.entry_biz_card.insert(0, str(product.get('business_card_cost', 0)))
+            self.entry_labor_time.insert(0, str(product.get('labor_time', 0)))
+            self.entry_labor_rate.insert(0, str(product.get('labor_rate', 0.0)))
             
             # Recalculate COGS based on loaded values
             self.calculate_cogs()
@@ -452,6 +481,9 @@ class ProductsTab(tk.Frame):
         self.entry_box.delete(0, tk.END)
         self.entry_wrap.delete(0, tk.END)
         self.entry_biz_card.delete(0, tk.END)
+        self.entry_labor_time.delete(0, tk.END)
+        self.entry_labor_rate.delete(0, tk.END)
+        self.entry_labor_rate.insert(0, str(DEFAULT_LABOR_RATE))
         self.calculate_cogs()
 
     def select_image(self):

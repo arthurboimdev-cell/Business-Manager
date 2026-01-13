@@ -64,6 +64,10 @@ def test_save_product_logic(products_tab, mock_api):
     products_tab.entry_upc.get.return_value = "UPC-888"
     products_tab.entry_stock.get.return_value = "10"
     
+    # Mock labor fields
+    products_tab.entry_labor_time.get.return_value = "0"
+    products_tab.entry_labor_rate.get.return_value = "0"
+    
     # Mock numeric fields validation (defaults)
     products_tab.entry_l.get.return_value = "0"
     products_tab.entry_w.get.return_value = "0"
@@ -109,3 +113,44 @@ def test_on_select_populates_fields(products_tab):
     products_tab.entry_name.insert.assert_called_with(0, 'Loaded Product')
     products_tab.entry_sku.insert.assert_called_with(0, 'LOADED-SKU')
     products_tab.entry_upc.insert.assert_called_with(0, 'LOADED-UPC')
+
+def test_calculate_cogs_with_labor(products_tab):
+    # Setup - mock entries
+    products_tab.entry_wax_g.get.return_value = "0"
+    products_tab.entry_fragrance_g.get.return_value = "0"
+    products_tab.entry_box.get.return_value = "0"
+    products_tab.entry_wrap.get.return_value = "0"
+    products_tab.entry_biz_card.get.return_value = "0"
+    # Defaults for other numeric inputs to avoid errors
+    products_tab.combo_wax.get.return_value = ""
+    products_tab.combo_fragrance.get.return_value = ""
+    products_tab.combo_wick.get.return_value = ""
+    products_tab.combo_container.get.return_value = ""
+    
+    # Labor Inputs
+    products_tab.entry_labor_time.get.return_value = "30"  # 30 minutes
+    # If the user sets a default, the get might return that if not mocked.
+    # But here we are mocking .get() explicitly for the calculation test.
+    products_tab.entry_labor_rate.get.return_value = "20"  # Override default for explicit test
+    
+    # Run calculation
+    total = products_tab.calculate_cogs()
+    
+    # Expected: (30/60) * 20 = 10.00
+    assert total == 10.00
+    
+    # Verify tree insertion
+    # We can check calls to insert
+    # args: (parent, index, values=(Component, Amount, Unit Cost, Total))
+    call_args = products_tab.cogs_tree.insert.call_args
+    assert call_args is not None
+    # values is the 3rd arg (index 2) or in kwargs
+    # call_args is (args, kwargs)
+    # .insert("", "end", values=...)
+    # args[0]='', args[1]='end'
+    kwargs = call_args.kwargs
+    values = kwargs.get('values')
+    
+    assert values[0] == "Labor"
+    assert values[1] == "30 min"
+    assert values[3] == "$10.00"
