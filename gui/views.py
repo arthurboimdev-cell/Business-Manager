@@ -29,20 +29,31 @@ class InputFrame(tb.Frame):
         
         self.products = [] # Store list of products for lookup
         self.create_field(UI_LABELS["quantity"], 2, "qty")
-        self.create_field(UI_LABELS["price"], 3, "price")
-        self.create_field(UI_LABELS["supplier"], 4, "supplier")
+        
+        # Total Cost (User Input)
+        self.create_field("Total Cost ($):", 3, "total")
+        
+        # Unit Cost (Calculated)
+        self.create_field("Unit Cost ($):", 4, "price")
+        self.entry_price.configure(state="readonly") # Make read-only
+
+        # Bindings for auto-calculation
+        self.entry_qty.bind("<KeyRelease>", self._calculate_unit_cost)
+        self.entry_total.bind("<KeyRelease>", self._calculate_unit_cost)
+
+        self.create_field(UI_LABELS["supplier"], 5, "supplier")
 
         self.type_var = tk.StringVar(value=transaction_types[0])
         lbl = tb.Label(self, text=UI_LABELS["type"])
-        lbl.grid(row=5, column=0, sticky='w', pady=5)
+        lbl.grid(row=6, column=0, sticky='w', pady=5)
         
         radio_frame = tb.Frame(self)
-        radio_frame.grid(row=5, column=1, sticky='w')
+        radio_frame.grid(row=6, column=1, sticky='w')
         for t_type in transaction_types:
             tb.Radiobutton(radio_frame, text=t_type.capitalize(), variable=self.type_var, value=t_type).pack(side='left', padx=5)
 
         btn_frame = tb.Frame(self)
-        btn_frame.grid(row=6, column=0, columnspan=2, pady=15, sticky='w')
+        btn_frame.grid(row=7, column=0, columnspan=2, pady=15, sticky='w')
 
         self.btn_add = tb.Button(btn_frame, text=BUTTON_ADD, bootstyle="success", command=self._handle_add_or_update)
         self.btn_add.pack(side='left', padx=5)
@@ -53,8 +64,29 @@ class InputFrame(tb.Frame):
         self.products = products
         # Populate Combobox values with Product titles
         names = [p['title'] for p in products]
+        names = [p['title'] for p in products]
         self.entry_desc['values'] = names
         
+    def _calculate_unit_cost(self, event=None):
+        try:
+            qty_val = self.entry_qty.get()
+            total_val = self.entry_total.get()
+            
+            if not qty_val or not total_val:
+                return
+
+            qty = float(qty_val)
+            total = float(total_val)
+            
+            if qty > 0:
+                unit = total / qty
+                self.entry_price.configure(state="normal")
+                self.entry_price.delete(0, tk.END)
+                self.entry_price.insert(0, f"{unit:.4f}")
+                self.entry_price.configure(state="readonly")
+        except ValueError:
+            pass
+
     def _on_product_selected(self, event):
         # Auto-fill fields if a product is selected
         selected_name = self.entry_desc.get()
@@ -107,7 +139,10 @@ class InputFrame(tb.Frame):
         self.entry_date.delete(0, tk.END)
         self.entry_desc.delete(0, tk.END)
         self.entry_qty.delete(0, tk.END)
+        self.entry_total.delete(0, tk.END)
+        self.entry_price.configure(state="normal")
         self.entry_price.delete(0, tk.END)
+        self.entry_price.configure(state="readonly")
         self.entry_supplier.delete(0, tk.END)
         self.type_var.set(TRANSACTION_TYPES[0])
         self.current_edit_id = None
@@ -119,7 +154,20 @@ class InputFrame(tb.Frame):
         self.entry_date.insert(0, data['transaction_date'])
         self.entry_desc.insert(0, data['description'])
         self.entry_qty.insert(0, str(data['quantity']))
+        
+        # Calculate and set Total and Unit Price
+        unit_price = float(data['price'])
+        qty = float(data['quantity'])
+        if data.get('total') is not None:
+            total = float(data['total'])
+        else:
+            total = unit_price * qty
+        
+        self.entry_total.insert(0, f"{total:.2f}")
+        
+        self.entry_price.configure(state="normal")
         self.entry_price.insert(0, str(data['price']))
+        self.entry_price.configure(state="readonly")
         if data.get('supplier'):
             self.entry_supplier.insert(0, data['supplier'])
         self.type_var.set(data['transaction_type'])

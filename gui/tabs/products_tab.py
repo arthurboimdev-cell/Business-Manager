@@ -189,8 +189,9 @@ class ProductsTab(tk.Frame):
             def get_int(k, d=1): return int(data.get(k) or d)
             
             # 1. Materials
-            total += get_float('wax_weight_g', 0) * get_float('wax_rate', 0)
-            total += get_float('fragrance_weight_g', 0) * get_float('fragrance_rate', 0)
+            # Rates for Wax/Fragrance are $/kg, so divide by 1000 for per-gram cost
+            total += get_float('wax_weight_g', 0) * (get_float('wax_rate', 0) / 1000.0)
+            total += get_float('fragrance_weight_g', 0) * (get_float('fragrance_rate', 0) / 1000.0)
             total += get_int('wick_quantity', 1) * get_float('wick_rate', 0)
             total += get_int('container_quantity', 1) * get_float('container_rate', 0)
             total += get_int('box_quantity', 1) * get_float('box_price', 0)

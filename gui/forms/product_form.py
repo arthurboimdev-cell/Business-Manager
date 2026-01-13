@@ -74,6 +74,20 @@ class ProductForm(tk.Frame):
         tk.Label(frame_general, text="Price ($)*:").grid(row=4, column=2, sticky="w")
         self.entry_price = tk.Entry(frame_general, width=12)
         self.entry_price.grid(row=4, column=3, sticky="w", padx=2)
+        self.entry_price.bind("<KeyRelease>", self.calculate_cogs)
+        
+        # COGS & Profit (Row 5)
+        
+        # Capture theme's default entry background dynamically
+        default_bg = self.entry_price.cget("bg")
+        
+        tk.Label(frame_general, text="COGS:").grid(row=5, column=0, sticky="w", pady=2)
+        self.entry_cogs = tk.Entry(frame_general, width=10, state="readonly", fg="red", readonlybackground=default_bg)
+        self.entry_cogs.grid(row=5, column=1, sticky="w", padx=2, pady=2)
+        
+        tk.Label(frame_general, text="Profit:").grid(row=5, column=2, sticky="w")
+        self.entry_profit = tk.Entry(frame_general, width=12, state="readonly", fg="green", readonlybackground=default_bg)
+        self.entry_profit.grid(row=5, column=3, sticky="w", padx=2)
 
         # --- Right Side: Main Image Preview ---
         frame_right = tk.LabelFrame(frame_top, text="Main Image", padx=5, pady=5)
@@ -129,7 +143,8 @@ class ProductForm(tk.Frame):
         self.entry_wax_g = tk.Entry(frame_bom, width=6)
         self.entry_wax_g.grid(row=0, column=3, padx=2)
         
-        tk.Label(frame_bom, text="Rate ($/g):").grid(row=0, column=4, sticky="w")
+        
+        tk.Label(frame_bom, text="Rate ($/kg):").grid(row=0, column=4, sticky="w")
         self.entry_wax_rate = tk.Entry(frame_bom, width=8)
         self.entry_wax_rate.grid(row=0, column=5, padx=2)
         
@@ -142,7 +157,8 @@ class ProductForm(tk.Frame):
         self.entry_fragrance_g = tk.Entry(frame_bom, width=6)
         self.entry_fragrance_g.grid(row=1, column=3, padx=2)
         
-        tk.Label(frame_bom, text="Rate ($/g):").grid(row=1, column=4, sticky="w")
+        
+        tk.Label(frame_bom, text="Rate ($/kg):").grid(row=1, column=4, sticky="w")
         self.entry_frag_rate = tk.Entry(frame_bom, width=8)
         self.entry_frag_rate.grid(row=1, column=5, padx=2)
         
@@ -256,16 +272,18 @@ class ProductForm(tk.Frame):
         wax_g = get_val(self.entry_wax_g)
         wax_rate = get_val(self.entry_wax_rate)
         if wax_g > 0:
-            cost = wax_g * wax_rate
-            self.cogs_tree.insert("", "end", values=("Wax", f"{wax_g} g", f"${wax_rate}/g", f"${cost:.2f}"))
+            # Rate is now $/kg, so divide by 1000 to get per gram cost
+            cost = wax_g * (wax_rate / 1000)
+            self.cogs_tree.insert("", "end", values=("Wax", f"{wax_g} g", f"${wax_rate}/kg", f"${cost:.2f}"))
             total_cost += cost
 
         # 2. Fragrance
         frag_g = get_val(self.entry_fragrance_g)
         frag_rate = get_val(self.entry_frag_rate)
         if frag_g > 0:
-            cost = frag_g * frag_rate
-            self.cogs_tree.insert("", "end", values=("Fragrance", f"{frag_g} g", f"${frag_rate}/g", f"${cost:.2f}"))
+            # Rate is now $/kg
+            cost = frag_g * (frag_rate / 1000)
+            self.cogs_tree.insert("", "end", values=("Fragrance", f"{frag_g} g", f"${frag_rate}/kg", f"${cost:.2f}"))
             total_cost += cost
 
         # 3. Wick
@@ -313,6 +331,27 @@ class ProductForm(tk.Frame):
              total_cost += l_cost
 
         self.lbl_total_cogs.config(text=f"TOTAL COGS: ${total_cost:.2f}")
+        
+        # Initial display for COGS
+        self.entry_cogs.config(state="normal")
+        self.entry_cogs.delete(0, "end")
+        self.entry_cogs.insert(0, f"${total_cost:.2f}")
+        self.entry_cogs.config(state="readonly")
+        
+        # Calculate Profit
+        # Get Price
+        try:
+             price_val = float(self.entry_price.get())
+        except ValueError:
+             price_val = 0.0
+             
+        profit = price_val - total_cost
+        
+        self.entry_profit.config(state="normal", fg="green" if profit >= 0 else "red")
+        self.entry_profit.delete(0, "end")
+        self.entry_profit.insert(0, f"${profit:.2f}")
+        self.entry_profit.config(state="readonly")
+
         return total_cost
 
     def display_main_image(self, image_input):

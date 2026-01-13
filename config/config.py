@@ -110,6 +110,7 @@ defaults = {
             "wax_type": "VARCHAR(100)",
             "wax_weight_g": "DECIMAL(10, 2)",
             "wax_rate": "DECIMAL(10, 4) DEFAULT 0.0000",
+            "fragrance_type": "VARCHAR(100)",
             "fragrance_weight_g": "DECIMAL(10, 2)",
             "fragrance_rate": "DECIMAL(10, 4) DEFAULT 0.0000",
             "wick_type": "VARCHAR(100)",
