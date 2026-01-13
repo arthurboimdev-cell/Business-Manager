@@ -64,7 +64,6 @@ class InputFrame(tb.Frame):
         self.products = products
         # Populate Combobox values with Product titles
         names = [p['title'] for p in products]
-        names = [p['title'] for p in products]
         self.entry_desc['values'] = names
         
     def _calculate_unit_cost(self, event=None):
@@ -95,15 +94,6 @@ class InputFrame(tb.Frame):
             
         found = next((p for p in self.products if p['title'] == selected_name), None)
         if found:
-            # We don't have a selling price, but we could default to something or just leave it.
-            # But the user asked for "Auto-fills Description and Price"
-            # Since we don't have selling price in DB, maybe we just fill Name.
-            # But we can try to guess or use total_cost * margin?
-            # For now, let's strictly stick to what we have. 
-            # Wait, "Auto-fills Description and Price" -> implied requirement.
-            # If I can't fill Price, I fail that req partially.
-            # Let's check if there's any field we can repurpose or if we should add default margin?
-            # No, safer to just leave price empty or previous value, or 0.
             pass
 
     def get_selected_product_id(self):
