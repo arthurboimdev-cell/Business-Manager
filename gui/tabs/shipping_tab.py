@@ -141,6 +141,8 @@ class ShippingTab(tk.Frame):
         if len(rates) == 1 and "error" in rates[0]:
             messagebox.showerror("Shipping Error", rates[0]["error"])
             return
+             
+
 
         for rate in rates:
             # Chit Chats response mapping

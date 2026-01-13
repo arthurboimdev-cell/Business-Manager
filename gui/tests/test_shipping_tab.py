@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
-import tkinter as tk
 import sys
+from importlib import reload
 
 # Mocking tkinter modules to avoid GUI display issues during tests
 class MockFrame:
@@ -24,6 +24,7 @@ class MockFrame:
     def after(self, ms, func, *args): func(*args) # Execute immediately
     def __str__(self): return "MockFrame"
 
+# Prepare mocks
 mock_tk = MagicMock()
 mock_tk.Frame = MockFrame
 mock_tk.LabelFrame = MockFrame
@@ -35,26 +36,34 @@ mock_tk.Button = MagicMock
 mock_tk.Label = MagicMock
 mock_tk.Entry.side_effect = lambda *args, **kwargs: MagicMock()
 
-sys.modules['tkinter'] = mock_tk
-sys.modules['tkinter.ttk'] = MagicMock()
-sys.modules['tkinter.messagebox'] = MagicMock()
-sys.modules['ttkbootstrap'] = MagicMock()
-sys.modules['ttkbootstrap.constants'] = MagicMock()
-
-import gui.tabs.shipping_tab
-from importlib import reload
-reload(gui.tabs.shipping_tab)
-from gui.tabs.shipping_tab import ShippingTab
+@pytest.fixture
+def shipping_tab_module():
+    """Patches sys.modules to mock tkinter and reloads the shipping tab module"""
+    with patch.dict(sys.modules, {
+        'tkinter': mock_tk,
+        'tkinter.ttk': MagicMock(),
+        'tkinter.messagebox': MagicMock(),
+        'ttkbootstrap': MagicMock(),
+        'ttkbootstrap.constants': MagicMock()
+    }):
+        import gui.tabs.shipping_tab
+        reload(gui.tabs.shipping_tab)
+        yield gui.tabs.shipping_tab
 
 @pytest.fixture
-def shipping_tab():
-    with patch('gui.tabs.shipping_tab.ChitChatsProvider') as MockProvider:
-        parent = MagicMock()
-        tab = ShippingTab(parent)
-        yield tab, MockProvider.return_value
+def shipping_tab(shipping_tab_module):
+    """Returns an instance of ShippingTab with mocked provider"""
+    ShippingTab = shipping_tab_module.ShippingTab
+    
+    # Patch the reference inside the module to ensure we target what the code uses
+    with patch.object(shipping_tab_module, 'messagebox', MagicMock()) as mock_mb:
+         with patch('gui.tabs.shipping_tab.ChitChatsProvider') as MockProvider:
+            parent = MagicMock()
+            tab = ShippingTab(parent)
+            yield tab, MockProvider.return_value, mock_mb
 
 def test_get_rates_calls_provider(shipping_tab):
-    tab, mock_provider = shipping_tab
+    tab, mock_provider, _ = shipping_tab
     
     # Setup inputs
     tab.entry_name.get.return_value = "Jane Doe"
@@ -71,40 +80,41 @@ def test_get_rates_calls_provider(shipping_tab):
     
     # Verify provider called
     mock_provider.get_rates.assert_called_once()
-    recipient = mock_provider.get_rates.call_args[0][0]
-    package = mock_provider.get_rates.call_args[0][1]
+    try:
+        recipient = mock_provider.get_rates.call_args[0][0]
+        package = mock_provider.get_rates.call_args[0][1]
+    except IndexError:
+        recipient = mock_provider.get_rates.call_args.args[0]
+        package = mock_provider.get_rates.call_args.args[1]
     
     assert recipient['name'] == "Jane Doe"
     assert recipient['country_code'] == "CA"
     assert package['weight'] == 100.0
     
     # Verify Treeview updated (Mocked)
-    # Since tree is mocked, we check if delete was called on children (clearing)
-    # and insert was called with new data
     assert tab.tree.insert.called
     args = tab.tree.insert.call_args[1]
     assert "Testcarrier" in args['values'][0]
 
 def test_invalid_input_handles_error(shipping_tab):
-    tab, mock_provider = shipping_tab
+    tab, mock_provider, mock_msgbox = shipping_tab
     
     # Setup invalid non-numeric weight
     tab.entry_weight.get.return_value = "abc"
     
-    with patch('gui.tabs.shipping_tab.messagebox.showerror') as mock_error:
-        tab.get_rates()
-        mock_error.assert_called_once()
-        assert "valid numeric values" in mock_error.call_args[0][1]
+    tab.get_rates()
+    
+    # Use the mock we injected
+    mock_msgbox.showerror.assert_called_once()
+    assert "valid numeric values" in mock_msgbox.showerror.call_args[0][1]
         
     mock_provider.get_rates.assert_not_called()
 
 def test_clear_inputs(shipping_tab):
-    tab, _ = shipping_tab
+    tab, _, _ = shipping_tab
     
     tab.clear_inputs()
     
     # Verify all entries cleared
     tab.entry_name.delete.assert_called_with(0, mock_tk.END)
     tab.entry_weight.delete.assert_called_with(0, mock_tk.END)
-    # Verify tree cleared
-    # tab.tree.delete called for children

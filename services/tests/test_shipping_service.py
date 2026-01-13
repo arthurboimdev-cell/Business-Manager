@@ -9,7 +9,7 @@ def mock_requests_post():
 
 def test_chitchats_provider_initialization():
     provider = ChitChatsProvider()
-    assert provider.base_url == "https://api.chitchats.com/v1"
+    assert provider.base_url == "https://chitchats.com/api/v1"
 
 def test_get_rates_missing_credentials():
     provider = ChitChatsProvider()

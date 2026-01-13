@@ -11,6 +11,13 @@ def mock_callbacks():
         'on_search': MagicMock(),
         'on_export': MagicMock()
     }
+    
+@pytest.fixture(autouse=True)
+def clean_views():
+    import gui.views
+    from importlib import reload
+    reload(gui.views)
+    yield
 
 def test_autosize_columns(tk_root, mock_callbacks):
     """Test that columns are resized based on content length using TreeFrame"""
