@@ -1,141 +1,136 @@
 import sys
+import pytest
 from unittest.mock import MagicMock, patch
+from importlib import reload
 import unittest
 
-# --- Top Level Mocking ---
-# We must do this BEFORE importing the module under test to ensure it picks up the mocks
-mock_tk = MagicMock()
-mock_tk.Tk = MagicMock
-mock_tk.Frame = MagicMock
-mock_tk.Label = MagicMock
-mock_tk.Entry = MagicMock
-mock_tk.Button = MagicMock
-mock_tk.Menu = MagicMock
-mock_tk.StringVar = MagicMock
+@pytest.fixture
+def mock_gui_modules():
+    """Patches tkinter and ttkbootstrap for feature flag tests"""
+    # Prepare mocks
+    mock_tk = MagicMock()
+    mock_tk.Tk = MagicMock
+    mock_tk.Frame = MagicMock
+    mock_tk.Label = MagicMock
+    mock_tk.Entry = MagicMock
+    mock_tk.Button = MagicMock
+    mock_tk.Menu = MagicMock
+    mock_tk.StringVar = MagicMock
+    
+    mock_ttk = MagicMock()
+    mock_tk.ttk = mock_ttk
+    
+    # Mock ttkbootstrap
+    mock_tb = MagicMock()
+    
+    class DummyBase:
+        def __init__(self, *args, **kwargs):
+            self.children = {}
+        def title(self, *args): pass
+        def geometry(self, *args): pass
+        def pack(self, *args, **kwargs): pass
+        def grid(self, *args, **kwargs): pass
+        def add(self, *args, **kwargs): pass
+        def forget(self, *args, **kwargs): pass
+        def mainloop(self): pass
+        def columnconfigure(self, *args, **kwargs): pass
+        def bind(self, *args, **kwargs): pass
 
-# Submodules
-mock_ttk = MagicMock()
-mock_tk.ttk = mock_ttk
+    mock_tb.Window = DummyBase
+    mock_tb.Notebook = DummyBase
+    mock_tb.Frame = DummyBase
+    mock_tb.Treeview = DummyBase
+    mock_tb.Scrollbar = DummyBase
+    mock_tb.Label = DummyBase
+    mock_tb.Entry = DummyBase
+    mock_tb.Button = DummyBase
+    mock_tb.Radiobutton = DummyBase
+    mock_tb.Combobox = DummyBase
+    
+    with patch.dict(sys.modules, {
+        'tkinter': mock_tk,
+        'tkinter.font': MagicMock(),
+        'tkinter.ttk': mock_ttk,
+        'tkinter.filedialog': MagicMock(),
+        'tkinter.messagebox': MagicMock(),
+        'tkinter.simpledialog': MagicMock(),
+        'ttkbootstrap': mock_tb,
+        'ttkbootstrap.constants': MagicMock()
+    }):
+        import gui.views
+        reload(gui.views)
+        yield gui.views
+        if 'gui.views' in sys.modules:
+             del sys.modules['gui.views']
 
-# Assign to sys.modules
-sys.modules['tkinter'] = mock_tk
-sys.modules['tkinter.font'] = MagicMock()
-sys.modules['tkinter.ttk'] = mock_ttk
-sys.modules['tkinter.filedialog'] = MagicMock()
-sys.modules['tkinter.messagebox'] = MagicMock()
-sys.modules['tkinter.simpledialog'] = MagicMock()
-
-# Mock ttkbootstrap
-mock_tb = MagicMock()
-
-# MagicMock as a base class causes issues because its __init__ expects specific mock-config args.
-# We use a DummyBase that accepts anything.
-class DummyBase:
-    def __init__(self, *args, **kwargs):
-        self.children = {}
-    def title(self, *args): pass
-    def geometry(self, *args): pass
-    def pack(self, *args, **kwargs): pass
-    def grid(self, *args, **kwargs): pass
-    def add(self, *args, **kwargs): pass
-    def forget(self, *args, **kwargs): pass
-    def mainloop(self): pass
-    def columnconfigure(self, *args, **kwargs): pass
-    def bind(self, *args, **kwargs): pass
-
-mock_tb.Window = DummyBase
-mock_tb.Notebook = DummyBase
-mock_tb.Frame = DummyBase
-# For other widgets not subclassed, MagicMock is fine if instantiated, 
-# but consistent DummyBase is safer if they are used as base classes or instantiated with complex args.
-mock_tb.Treeview = DummyBase
-mock_tb.Scrollbar = DummyBase
-mock_tb.Label = DummyBase
-mock_tb.Entry = DummyBase
-mock_tb.Button = DummyBase
-mock_tb.Radiobutton = DummyBase
-mock_tb.Combobox = DummyBase
-
-sys.modules['ttkbootstrap'] = mock_tb
-sys.modules['ttkbootstrap.constants'] = MagicMock()
-
-# Now import the class under test
-import gui.views
-from importlib import reload
-# Reload to ensure it binds to our fresh mocks if tests are re-run or imported multiple times
-reload(gui.views)
-from gui.views import MainWindow
-
+@pytest.mark.usefixtures("mock_gui_modules")
 class TestFeatureFlags(unittest.TestCase):
     def setUp(self):
-        # Patch ShippingTab to avoid it trying to do things
-        self.patcher_shipping = patch('gui.views.ShippingTab')
-        self.MockShippingTab = self.patcher_shipping.start()
+        # We need the class to use the mocked modules, so we import it inside the test methods or here
+        # But unittest setUp doesn't easily access the fixture yield.
+        # So we can just rely on the side-effect of the fixture (patching sys.modules)
+        # However, for the class to be available, we need to import it.
+        # Since the fixture reloads gui.views, we can import it here.
+        pass
+
+    def get_main_window_class(self):
+        # Helper to get the class from the currently loaded (mocked) module
+        import gui.views
+        return gui.views.MainWindow
         
-        # Patch matplotlib imports inside charts which might be imported by views
-        # actually views imports AnalyticsFrame from gui.charts
-        # so we might need to patch that too if it causes issues, but top level sys.modules usually handles it?
-        # Let's hope so.
-
-    def tearDown(self):
-        self.patcher_shipping.stop()
-
     def test_all_enabled(self):
-        features = {
+        self._test_features({
             "product_inventory": True,
             "materials_inventory": True,
             "shipping": True
-        }
-        window = MainWindow("Test", features=features)
+        })
+
+    def _test_features(self, features):
+        MainWindow = self.get_main_window_class()
         
-        self.assertTrue(hasattr(window, 'tab_products'), "Products tab should exist")
-        self.assertTrue(hasattr(window, 'tab_materials'), "Materials tab should exist")
-        self.assertTrue(hasattr(window, 'tab_shipping'), "Shipping tab should exist")
+        # Patch ShippingTab to avoid it trying to do things
+        with patch('gui.views.ShippingTab') as MockShippingTab:
+             window = MainWindow("Test", features=features)
+             
+             if features.get("product_inventory"):
+                 self.assertTrue(hasattr(window, 'tab_products'))
+             else:
+                 self.assertFalse(hasattr(window, 'tab_products'))
+                 
+             if features.get("materials_inventory"):
+                 self.assertTrue(hasattr(window, 'tab_materials'))
+             else:
+                 self.assertFalse(hasattr(window, 'tab_materials'))
+                 
+             if features.get("shipping"):
+                 self.assertTrue(hasattr(window, 'tab_shipping'))
+             else:
+                 self.assertFalse(hasattr(window, 'tab_shipping'))
 
     def test_all_disabled(self):
-        features = {
+        self._test_features({
             "product_inventory": False,
             "materials_inventory": False,
             "shipping": False
-        }
-        window = MainWindow("Test", features=features)
+        })
         
-        self.assertFalse(hasattr(window, 'tab_products'), "Products tab should NOT exist")
-        self.assertFalse(hasattr(window, 'tab_materials'), "Materials tab should NOT exist")
-        self.assertFalse(hasattr(window, 'tab_shipping'), "Shipping tab should NOT exist")
-
     def test_products_only(self):
-        features = {
+        self._test_features({
             "product_inventory": True,
             "materials_inventory": False,
             "shipping": False
-        }
-        window = MainWindow("Test", features=features)
-        
-        self.assertTrue(hasattr(window, 'tab_products'))
-        self.assertFalse(hasattr(window, 'tab_materials'))
-        self.assertFalse(hasattr(window, 'tab_shipping'))
+        })
 
     def test_materials_only(self):
-        features = {
+        self._test_features({
             "product_inventory": False,
             "materials_inventory": True,
             "shipping": False
-        }
-        window = MainWindow("Test", features=features)
-        
-        self.assertFalse(hasattr(window, 'tab_products'))
-        self.assertTrue(hasattr(window, 'tab_materials'))
-        self.assertFalse(hasattr(window, 'tab_shipping'))
+        })
         
     def test_shipping_only(self):
-        features = {
+        self._test_features({
             "product_inventory": False,
             "materials_inventory": False,
             "shipping": True
-        }
-        window = MainWindow("Test", features=features)
-        
-        self.assertFalse(hasattr(window, 'tab_products'))
-        self.assertFalse(hasattr(window, 'tab_materials'))
-        self.assertTrue(hasattr(window, 'tab_shipping'))
+        })

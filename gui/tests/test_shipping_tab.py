@@ -48,7 +48,13 @@ def shipping_tab_module():
     }):
         import gui.tabs.shipping_tab
         reload(gui.tabs.shipping_tab)
-        yield gui.tabs.shipping_tab
+        
+    # Sys.modules is now restored, but shipping_tab module's references point to mocks
+    yield gui.tabs.shipping_tab
+    
+    # Cleanup: remove the dirty module so future imports get a fresh one
+    if 'gui.tabs.shipping_tab' in sys.modules:
+        del sys.modules['gui.tabs.shipping_tab']
 
 @pytest.fixture
 def shipping_tab(shipping_tab_module):

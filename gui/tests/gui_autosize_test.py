@@ -9,14 +9,24 @@ def mock_callbacks():
         'on_delete': MagicMock(),
         'on_edit': MagicMock(),
         'on_search': MagicMock(),
-        'on_export': MagicMock()
+        'on_export': MagicMock(),
     }
     
 @pytest.fixture(autouse=True)
-def clean_views():
+def clean_environment():
+    """Ensure we start with fresh modules to avoid test pollution from mocks"""
+    import sys
+    # Modules that might be polluted by test_shipping_tab or others
+    polluted = ['gui.views', 'ttkbootstrap', 'tkinter', 'tkinter.ttk', 'tkinter.messagebox']
+    
+    # Store originals if needed? No, we want real imports.
+    # Just delete them from sys.modules so import system re-loads them from disk/lib
+    for p in polluted:
+        if p in sys.modules:
+            del sys.modules[p]
+            
+    # Now import gui.views (which triggers re-import of dependencies)
     import gui.views
-    from importlib import reload
-    reload(gui.views)
     yield
 
 def test_autosize_columns(tk_root, mock_callbacks):
