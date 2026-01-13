@@ -1,3 +1,4 @@
+import json
 from db.db_connection import get_db_connection
 from config.config import PRODUCTS_TABLE_NAME
 import mysql.connector
@@ -14,16 +15,25 @@ def create_product(product_data, table=PRODUCTS_TABLE_NAME):
     # but strict adherence to schema is safer.
     
     columns = [
-        "name", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
+        "title", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
         "wax_type", "wax_weight_g", "wax_rate", 
         "fragrance_weight_g", "fragrance_rate",
-        "wick_type", "wick_rate", 
-        "container_type", "container_rate", "container_details",
-        "box_price", "wrap_price", "business_card_cost", "labor_time", "labor_rate", 'image'
+        "wick_type", "wick_rate", "wick_quantity", 
+        "container_type", "container_rate", "container_quantity", "container_details",
+        "box_type", "box_price", "box_quantity", "wrap_price", "business_card_cost", "labor_time", "labor_rate", "selling_price", 
+        "amazon_data", "etsy_data", "common_data", 'image'
     ]
     
     # Filter data to only valid columns
     data = {k: v for k, v in product_data.items() if k in columns}
+    
+    # JSON Serialization
+    if 'amazon_data' in data and not isinstance(data['amazon_data'], str):
+        data['amazon_data'] = json.dumps(data['amazon_data'])
+    if 'etsy_data' in data and not isinstance(data['etsy_data'], str):
+        data['etsy_data'] = json.dumps(data['etsy_data'])
+    if 'common_data' in data and not isinstance(data['common_data'], str):
+        data['common_data'] = json.dumps(data['common_data'])
     
     cols_str = ", ".join(data.keys())
     # placeholders: %s
@@ -74,17 +84,26 @@ def update_product(product_id, product_data, table=PRODUCTS_TABLE_NAME):
     cursor = conn.cursor()
     
     columns = [
-        "name", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
+        "title", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
         "wax_type", "wax_weight_g", "wax_rate", 
-        "fragrance_weight_g", "fragrance_rate",
-        "wick_type", "wick_rate", 
-        "container_type", "container_rate", "container_details",
-        "box_price", "wrap_price", "business_card_cost", "labor_time", "labor_rate", 'image'
+        "fragrance_type", "fragrance_weight_g", "fragrance_rate",
+        "wick_type", "wick_rate", "wick_quantity",
+        "container_type", "container_rate", "container_quantity", "container_details",
+        "box_type", "box_price", "box_quantity", "wrap_price", "business_card_cost", "labor_time", "labor_rate", "selling_price",
+        "amazon_data", "etsy_data", "common_data", 'image'
     ]
     
     data = {k: v for k, v in product_data.items() if k in columns}
     
-    set_clause = ", ".join([f"{col} = %s" for col in data.keys()])
+    # JSON Serialization
+    if 'amazon_data' in data and not isinstance(data['amazon_data'], str):
+        data['amazon_data'] = json.dumps(data['amazon_data'])
+    if 'etsy_data' in data and not isinstance(data['etsy_data'], str):
+        data['etsy_data'] = json.dumps(data['etsy_data'])
+    if 'common_data' in data and not isinstance(data['common_data'], str):
+        data['common_data'] = json.dumps(data['common_data'])
+        
+    set_clause = ", ".join([f"{k} = %s" for k in data.keys()])
     values = list(data.values())
     values.append(product_id)
     
@@ -111,6 +130,49 @@ def delete_product(product_id, table=PRODUCTS_TABLE_NAME):
     finally:
         cursor.close()
         conn.close()
+
+# --- Image Management ---
+def add_product_image(product_id, image_data, display_order=0):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        sql = "INSERT INTO product_images (product_id, image_data, display_order) VALUES (%s, %s, %s)"
+        cursor.execute(sql, (product_id, image_data, display_order))
+        conn.commit()
+        return cursor.lastrowid
+    except mysql.connector.Error as err:
+        print(f"Error adding image: {err}")
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_product_images(product_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        sql = "SELECT * FROM product_images WHERE product_id = %s ORDER BY display_order ASC"
+        cursor.execute(sql, (product_id,))
+        return cursor.fetchall()
+    except mysql.connector.Error as err:
+        print(f"Error fetching images: {err}")
+        return []
+    finally:
+        cursor.close()
+        conn.close()
+
+def delete_product_image(image_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        sql = "DELETE FROM product_images WHERE id = %s"
+        cursor.execute(sql, (image_id,))
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error deleting image: {err}")
+    finally:
+        cursor.close()
+        conn.close()
+
 def update_stock(product_id: int, delta: int, table=PRODUCTS_TABLE_NAME):
     """
     Update product stock quantity. 

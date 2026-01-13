@@ -14,7 +14,7 @@ def test_inventory_link_flow():
     """
     # 1. Add a Product with initial stock
     product_data = {
-        "name": "Test Link Product",
+        "title": "Test Link Product",
         "stock_quantity": 100,
         "weight_g": 200,
         "sku": "LINK-001"
@@ -40,20 +40,23 @@ def setup_module():
     
     conn = get_db_connection()
     c = conn.cursor()
-    # Drop to force schema update
+    # Drop to force schema update - Correct Order
+    c.execute(f"DROP TABLE IF EXISTS product_images")
     c.execute(f"DROP TABLE IF EXISTS {PRODUCTS_TABLE_NAME}")
     c.execute(f"DROP TABLE IF EXISTS {TABLE_NAME}")
     conn.commit()
     c.close()
     conn.close()
 
+    from config.config import PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA
     init_db(PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA)
     init_db(TABLE_NAME, TRANSACTIONS_SCHEMA)
+    init_db(PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA)
 
 def test_stock_deduction():
     # 1. Create Product
     p_data = {
-        "name": "Stock Test Candle",
+        "title": "Stock Test Candle",
         "stock_quantity": 50,
         "sku": "STK-1"
     }
@@ -61,7 +64,9 @@ def test_stock_deduction():
     # We need to recreate the table or cleanup
     conn = get_db_connection()
     c = conn.cursor()
-    c.execute(f"TRUNCATE TABLE {PRODUCTS_TABLE_NAME}") # Dangerous if Prod? No, we are in Test mode logic.
+    c.execute("SET FOREIGN_KEY_CHECKS = 0")
+    c.execute(f"DELETE FROM {PRODUCTS_TABLE_NAME}")
+    c.execute("SET FOREIGN_KEY_CHECKS = 1")
     # Wait, `config.py` selects TABLE based on frozen. Tests usually run in source.
     # So we are on `products_test` and `transactions_test`. Safe.
     pass
@@ -73,13 +78,15 @@ def test_add_transaction_deducts_stock():
     conn = get_db_connection()
     c = conn.cursor()
     # Reset data (tables exist from setup_module)
-    c.execute(f"TRUNCATE TABLE {PRODUCTS_TABLE_NAME}")
-    c.execute(f"TRUNCATE TABLE {TABLE_NAME}")
+    c.execute("SET FOREIGN_KEY_CHECKS = 0")
+    c.execute(f"DELETE FROM {PRODUCTS_TABLE_NAME}")
+    c.execute(f"DELETE FROM {TABLE_NAME}")
+    c.execute("SET FOREIGN_KEY_CHECKS = 1")
     conn.commit()
     
     # 1. Add Product
     p_id = products.create_product({
-        "name": "Inventory Candle", 
+        "title": "Inventory Candle", 
         "stock_quantity": 10,
         "sku": "INV-1"
     }, table=PRODUCTS_TABLE_NAME)

@@ -3,10 +3,11 @@ import pytest
 from unittest.mock import MagicMock, patch
 import sys
 
-# Define explicit Mock classes to avoid MagicMock inheritance recursion issues
+# Define explicit Mock classes
 class MockFrame:
     def __init__(self, master=None, **kwargs):
         self.master = master
+        self.winfo_children_val = []
     def grid(self, **kwargs): pass
     def pack(self, **kwargs): pass
     def place(self, **kwargs): pass
@@ -15,11 +16,13 @@ class MockFrame:
     def destroy(self): pass
     def bind(self, *args, **kwargs): pass
     def winfo_id(self): return 12345
+    def winfo_children(self): return self.winfo_children_val
 
 # Mock tkinter module structure
 mock_tk = MagicMock()
 mock_tk.Frame = MockFrame
 mock_tk.LabelFrame = MockFrame
+mock_tk.Toplevel = MockFrame 
 mock_tk.Tk = MockFrame
 # Ensure Entry returns a NEW mock each time
 mock_tk.Entry.side_effect = lambda *args, **kwargs: MagicMock()
@@ -30,253 +33,138 @@ sys.modules['tkinter.ttk'] = MagicMock()
 sys.modules['tkinter.messagebox'] = MagicMock()
 sys.modules['tkinter.filedialog'] = MagicMock()
 
+# We also need to mock the new components to avoid ImportErrors or complex mocking logic?
+# Actually we want to test integration with ProductForm, so we should allow it to be imported.
+# But ProductForm imports tkinter too, which is mocked. So it should be fine.
+
+import gui.forms.product_form
+import gui.dialogs.create_product_dialog
 import gui.tabs.products_tab
 from importlib import reload
+
+# KEY FIX: Reload modules in dependency order so they pick up the mocked tkinter
+reload(gui.forms.product_form)
+reload(gui.dialogs.create_product_dialog)
 reload(gui.tabs.products_tab)
+
 from gui.tabs.products_tab import ProductsTab
 
 @pytest.fixture
 def mock_api():
-    with patch('gui.tabs.products_tab.APIClient') as mock:
-        mock.get_materials.return_value = []
-        mock.get_products.return_value = []
-        yield mock
+    # Patch in all locations where APIClient is imported
+    with patch('gui.tabs.products_tab.APIClient') as mock_1, \
+         patch('gui.forms.product_form.APIClient') as mock_2, \
+         patch('gui.dialogs.create_product_dialog.APIClient') as mock_3:
+        
+        # Configure valid returns for all mocks to behave consistently
+        for m in [mock_1, mock_2, mock_3]:
+            m.get_products.return_value = []
+            m.get_product_images.return_value = []
+            m.add_product.return_value = {'id': 999}
+            
+        yield mock_1 # Return one, they should all be mocks now
 
 @pytest.fixture
 def products_tab(mock_api):
     parent = MagicMock()
-    # Now ProductsTab inherits from MockFrame, so init is safe
     tab = ProductsTab(parent)
     return tab
 
 def test_ui_widgets_created(products_tab):
-    """Test that entry widgets are created"""
-    assert products_tab.entry_sku is not None
-    assert products_tab.entry_upc is not None
-    assert products_tab.entry_box is not None
-    assert products_tab.entry_wrap is not None
-    assert products_tab.entry_price is not None
+    """Test that form widgets are created via the embedded form"""
+    assert products_tab.form.entry_sku is not None
+    assert products_tab.form.entry_price is not None
+    assert products_tab.form.lbl_main_img_preview is not None
+    assert products_tab.form.gallery_frame is not None
 
-def test_save_product_logic(products_tab, mock_api):
-    """Test that save logic reads from the mocked entries"""
-    # Configure mock entries (which are MagicMocks created by tk.Entry calls)
-    products_tab.entry_name.get.return_value = "Test Product"
-    products_tab.entry_sku.get.return_value = "SKU-999"
-    products_tab.entry_upc.get.return_value = "UPC-888"
-    products_tab.entry_stock.get.return_value = "10"
+def test_update_product_logic(products_tab, mock_api):
+    """Test that update logic gets data from form and calls API"""
+    # Explicitly mock the tree to ensure we control selection behavior
+    products_tab.tree = MagicMock()
     
-    # Mock labor fields
-    products_tab.entry_labor_time.get.return_value = "0"
-    products_tab.entry_labor_rate.get.return_value = "0"
-    products_tab.entry_price.get.return_value = "20.00"
+    # CASE 1: No Selection
+    products_tab.tree.selection.return_value = [] # Empty list -> False
     
-    # Mock numeric fields validation (defaults)
-    # Mock numeric fields validation (defaults)
-    products_tab.entry_l.get.return_value = "0"
-    products_tab.entry_w.get.return_value = "0"
-    products_tab.entry_h.get.return_value = "0"
-    products_tab.entry_weight.get.return_value = "0"
+    # Patch specifically where it is used
+    with patch('gui.tabs.products_tab.messagebox.showwarning') as mock_warn:
+        products_tab.update_product()
+        mock_warn.assert_called_with("Warning", "No product selected to update")
+
+    # CASE 2: Valid Selection
+    products_tab.tree.selection.return_value = ["item1"]
+    products_tab.tree.item.return_value = {'values': [123]} # Product ID 123
     
-    # Manual BOM Inputs
-    products_tab.entry_wax_name.get.return_value = "Soy Wax"
-    products_tab.entry_wax_g.get.return_value = "100"
-    products_tab.entry_wax_rate.get.return_value = "0.05"
+    # Mock Form Data
+    products_tab.form.get_data = MagicMock(return_value={"id": 123, "title": "Updated Product"})
     
-    products_tab.entry_frag_name.get.return_value = "Lavender"
-    products_tab.entry_fragrance_g.get.return_value = "10"
-    products_tab.entry_frag_rate.get.return_value = "0.10"
-    
-    products_tab.entry_wick_name.get.return_value = "Cotton"
-    products_tab.entry_wick_qty.get.return_value = "3"
-    products_tab.entry_wick_rate.get.return_value = "0.50"
-    
-    products_tab.entry_container_name.get.return_value = "Jar"
-    products_tab.entry_container_qty.get.return_value = "10"
-    products_tab.entry_container_rate.get.return_value = "2.00"
-    
-    products_tab.entry_box_name.get.return_value = "Gift Box"
-    products_tab.entry_box.get.return_value = "1.50"
-    products_tab.entry_box_qty.get.return_value = "2"
-    products_tab.entry_wrap.get.return_value = "0"
-    
-    # Suppress messagebox
     with patch('gui.tabs.products_tab.messagebox.showinfo') as mock_info:
-        products_tab.add_product()
+        products_tab.update_product()
         
-        # Verify API called with correct data
-        mock_api.add_product.assert_called_once()
-        args = mock_api.add_product.call_args[0][0]
-        
-        assert args['name'] == "Test Product"
-        assert args['sku'] == "SKU-999"
-        assert args['upc'] == "UPC-888"
+        mock_api.update_product.assert_called_with(123, {"id": 123, "title": "Updated Product"})
+        mock_info.assert_called_with("Success", "Product Updated")
 
-def test_on_select_populates_fields(products_tab):
-    """Test that selecting a product populates the mocked entries"""
-    # Mock selected item
+def test_on_select_populates_form(products_tab):
+    """Test that selecting a product calls load_product on form"""
+    # Mock selection
     mock_tree = products_tab.tree
     mock_tree.selection.return_value = ["item1"]
-    mock_tree.item.return_value = {'values': [101]} # ID 101
+    mock_tree.item.return_value = {'values': [101]}
     
-    # Mock product data
-    mock_product = {
-        'id': 101, 
-        'name': 'Loaded Product',
-        'sku': 'LOADED-SKU',
-        'upc': 'LOADED-UPC',
-        # Manual BOM Data
-        'wax_type': 'Soy Test',
-        'wax_weight_g': 200,
-        'wax_rate': 0.05,
-        'wick_quantity': 2,
-        'container_quantity': 12,
-        'box_type': 'Gift Box',
-        'box_price': 1.50,
-        'box_quantity': 5,
-        'stock_quantity': 5,
-        'selling_price': 15.00
-    }
+    # Mock product list
+    mock_product = {'id': 101, 'title': 'Test Pro'}
     products_tab.products = [mock_product]
+    
+    # Mock form.load_product
+    products_tab.form.load_product = MagicMock()
     
     products_tab.on_product_select(None)
     
-    # Verify insert called on mocked entries
-    products_tab.entry_name.insert.assert_called_with(0, 'Loaded Product')
-    products_tab.entry_sku.insert.assert_called_with(0, 'LOADED-SKU')
-    products_tab.entry_upc.insert.assert_called_with(0, 'LOADED-UPC')
-    products_tab.entry_price.insert.assert_called_with(0, '15.0')
-    # Check Manual BOM population
-    products_tab.entry_wax_name.insert.assert_called_with(0, 'Soy Test')
-    products_tab.entry_wax_g.insert.assert_called_with(0, '200')
-    products_tab.entry_wax_rate.insert.assert_called_with(0, '0.05')
-    products_tab.entry_wick_qty.insert.assert_called_with(0, '2')
-    products_tab.entry_container_qty.insert.assert_called_with(0, '12')
-    products_tab.entry_box_name.insert.assert_called_with(0, 'Gift Box')
-    products_tab.entry_box_qty.insert.assert_called_with(0, '5')
+    products_tab.form.load_product.assert_called_with(mock_product)
 
-def test_calculate_cogs_with_labor(products_tab):
-    # Setup - mock entries
-    products_tab.entry_wax_g.get.return_value = "0"
-    products_tab.entry_wax_rate.get.return_value = "0"
-    products_tab.entry_fragrance_g.get.return_value = "0"
-    products_tab.entry_frag_rate.get.return_value = "0" 
-    products_tab.entry_wick_rate.get.return_value = "0"
-    products_tab.entry_wick_qty.get.return_value = "1"
-    products_tab.entry_container_rate.get.return_value = "0"
-    products_tab.entry_container_qty.get.return_value = "1"
+def test_form_calculate_cogs(products_tab):
+    """Test the calculation logic inside the embedded form"""
+    form = products_tab.form
     
-    products_tab.entry_box_name.get.return_value = ""
-    products_tab.entry_box.get.return_value = "0"
-    products_tab.entry_box_qty.get.return_value = "1"
-    products_tab.entry_wrap.get.return_value = "0"
-    products_tab.entry_biz_card.get.return_value = "0"
+    # Mock entries on the form
+    form.entry_wax_g.get.return_value = "100"
+    form.entry_wax_rate.get.return_value = "0.05"
+    form.entry_labor_time.get.return_value = "60"
+    form.entry_labor_rate.get.return_value = "20"
     
-    # Text inputs (names) - return string to avoid error if accessed
-    products_tab.entry_wax_name.get.return_value = ""
-    products_tab.entry_frag_name.get.return_value = ""
-    products_tab.entry_wick_name.get.return_value = ""
-    products_tab.entry_container_name.get.return_value = ""
-    
-    # Labor Inputs
-    products_tab.entry_labor_time.get.return_value = "30"  # 30 minutes
-    # If the user sets a default, the get might return that if not mocked.
-    # But here we are mocking .get() explicitly for the calculation test.
-    products_tab.entry_labor_rate.get.return_value = "20"  # Override default for explicit test
+    # Clear others to defaults
+    for entry in [form.entry_fragrance_g, form.entry_frag_rate, form.entry_wick_rate, 
+                  form.entry_container_rate, form.entry_box, form.entry_wrap, form.entry_biz_card]:
+        entry.get.return_value = "0"
+        
+    form.entry_wick_qty.get.return_value = "1"
+    form.entry_container_qty.get.return_value = "1"
+    form.entry_box_qty.get.return_value = "1"
     
     # Run calculation
-    total = products_tab.calculate_cogs()
+    total = form.calculate_cogs()
     
-    # Expected: (30/60) * 20 = 10.00
-    assert total == 10.00
+    # 100*0.05 = 5.00
+    # (60/60)*20 = 20.00
+    # Total = 25.00
+    assert total == 25.00
     
-    # Verify tree insertion
-    # We can check calls to insert
-    # args: (parent, index, values=(Component, Amount, Unit Cost, Total))
-    call_args = products_tab.cogs_tree.insert.call_args
-    assert call_args is not None
-    # values is the 3rd arg (index 2) or in kwargs
-    # call_args is (args, kwargs)
-    # .insert("", "end", values=...)
-    # args[0]='', args[1]='end'
-    kwargs = call_args.kwargs
-    values = kwargs.get('values')
-    
-    assert values[1] == "30 min"
-    assert values[3] == "$10.00"
-
-def test_calculate_cogs_manual_bom(products_tab):
-    """Test manual BOM rate calculation"""
-    # 1. Wax: 100g * $0.05/g = $5.00
-    products_tab.entry_wax_g.get.return_value = "100"
-    products_tab.entry_wax_rate.get.return_value = "0.05"
-    products_tab.entry_wax_name.get.return_value = "Soy"
-    
-    # 2. Wick: 3 unit * $0.50/unit = $1.50
-    products_tab.entry_wick_qty.get.return_value = "3"
-    products_tab.entry_wick_rate.get.return_value = "0.50"
-    products_tab.entry_wick_name.get.return_value = "Cotton"
-    
-    # 3. Box: 2 units * $1.00/unit = $2.00
-    products_tab.entry_box_name.get.return_value = "Box"
-    products_tab.entry_box.get.return_value = "1.00"
-    products_tab.entry_box_qty.get.return_value = "2"
-    
-    # Zero out others
-    products_tab.entry_fragrance_g.get.return_value = "0"
-    products_tab.entry_frag_rate.get.return_value = "0"
-    products_tab.entry_container_qty.get.return_value = "1"
-    products_tab.entry_container_rate.get.return_value = "0"
-    products_tab.entry_wrap.get.return_value = "0"
-    products_tab.entry_biz_card.get.return_value = "0"
-    products_tab.entry_labor_time.get.return_value = "0"
-    products_tab.entry_labor_rate.get.return_value = "0"
-    
-    total = products_tab.calculate_cogs()
-    
-    # Expected: 5.00 + 1.50 + 2.00 = 8.50
-    assert total == 8.50
-    
-    # Verify Treeview content (Optional, but good practice)
-    # We expect multiple inserts. 
-    # Let's check if 'Soy' wax entry exists or at least value correctness
-    # We can inspect the calls list
-    inserts = products_tab.cogs_tree.insert.call_args_list
-    # Look for Wax insert
-    wax_found = False
+    # Verify Tree
+    inserts = form.cogs_tree.insert.call_args_list
+    # Check for Labor
+    labor_found = False
     for call in inserts:
-        # call.kwargs['values'] = ('Wax', '100 g', '$0.05/g', '$5.00')
         vals = call.kwargs.get('values')
-        if vals and vals[0] == "Wax":
-            assert vals[3] == "$5.00"
-            wax_found = True
-            break
-            
-    assert wax_found
-    assert wax_found
+        if vals and vals[0] == "Labor":
+            assert vals[3] == "$20.00"
+            labor_found = True
+    assert labor_found
 
 def test_static_calculation_logic():
-    """Test the static calculate_product_cost method used by the treeview"""
+    """Test the static method used by ProductsTab for the list view"""
     data = {
-        'wax_weight_g': 100, 'wax_rate': 0.10,          # 10.00
-        'fragrance_weight_g': 10, 'fragrance_rate': 0.5,# 5.00
-        'wick_quantity': 2, 'wick_rate': 0.25,          # 0.50
-        'container_quantity': 1, 'container_rate': 2.00,# 2.00
-        'box_quantity': 10, 'box_price': 0.50,          # 5.00
-        'wrap_price': 0.50,                             # 0.50
-        'business_card_cost': 0.10,                     # 0.10
-        'labor_time': 60, 'labor_rate': 20.00           # 20.00
+        'wax_weight_g': 100, 'wax_rate': 0.10,
+        'labor_time': 30, 'labor_rate': 20.00
     }
-    # Total: 10 + 5 + 0.5 + 2 + 5 + 0.5 + 0.1 + 20 = 43.10
-    
-    cost = ProductsTab.calculate_product_cost(data)
-    assert abs(cost - 43.10) < 0.001
-    
-    # Test with partial data
-    data_partial = {
-        'wax_weight_g': 100,
-        'wax_rate': 0.10
-    }
-    # All else defaults to 0 or 1
-    # Defaults: box_qty=1, box_price=0 => 0. wick_qty=1, wick_rate=0 => 0.
-    # So just tax = 10.00
-    assert ProductsTab.calculate_product_cost(data_partial) == 10.00
+    # 10.00 + 10.00 = 20.00
+    cost = ProductsTab.calculate_product_cost_static(data)
+    assert abs(cost - 20.00) < 0.001

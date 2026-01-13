@@ -99,7 +99,7 @@ defaults = {
         },
         "products_schema": {
             "id": "INT AUTO_INCREMENT PRIMARY KEY",
-            "name": "VARCHAR(255)",
+            "title": "VARCHAR(255) NOT NULL",
             "sku": "VARCHAR(50)",
             "upc": "VARCHAR(50)",
             "description": "TEXT",
@@ -127,7 +127,18 @@ defaults = {
             "labor_time": "INT DEFAULT 0",
             "labor_rate": "DECIMAL(10, 2) DEFAULT 0.00",
             "selling_price": "DECIMAL(10, 2) DEFAULT 0.00",
-            "image": "LONGBLOB"
+            "amazon_data": "JSON", 
+            "etsy_data": "JSON", 
+            "common_data": "JSON",
+            "image": "LONGBLOB" # Legacy single image, keeping for compatibility
+        },
+        "product_images_schema": {
+            "id": "INT AUTO_INCREMENT PRIMARY KEY",
+            "product_id": "INT", 
+            "image_data": "LONGBLOB",
+            "image_url": "TEXT",
+            "display_order": "INT DEFAULT 0",
+            "FOREIGN KEY (product_id)": "REFERENCES products(id) ON DELETE CASCADE"
         },
         "materials_table": "materials",
         "materials_test_table": "materials_test",
@@ -191,8 +202,14 @@ TEST_TABLE = config_data["data"]["transactions_test_table"]
 DB_SCHEMA = config_data["data"].get("transactions_schema", {}) # Backward compat
 TRANSACTIONS_SCHEMA = config_data["data"].get("transactions_schema", {})
 PRODUCTS_SCHEMA = config_data["data"].get("products_schema", {})
+PRODUCT_IMAGES_SCHEMA = config_data["data"].get("product_images_schema", {})
+# Fix FK to point to correct table (test vs prod)
+if "FOREIGN KEY (product_id)" in PRODUCT_IMAGES_SCHEMA:
+    PRODUCT_IMAGES_SCHEMA["FOREIGN KEY (product_id)"] = f"REFERENCES {PRODUCTS_TABLE_NAME}(id) ON DELETE CASCADE"
+    
 MATERIALS_SCHEMA = config_data["data"].get("materials_schema", {})
 MATERIALS_TABLE = MATERIALS_TABLE_NAME
+PRODUCT_IMAGES_TABLE = "product_images" # Default, or from config if added later
 
 WINDOW_TITLE = config_data["app"]["title"]
 TREE_COLUMNS = config_data["data"]["transaction_columns"]

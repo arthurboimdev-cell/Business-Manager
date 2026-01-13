@@ -211,7 +211,7 @@ from config.config import PRODUCTS_TABLE_NAME
 import base64
 
 class ProductCreate(BaseModel):
-    name: str
+    title: str
     sku: Optional[str] = None
     upc: Optional[str] = None
     description: Optional[str] = None
@@ -221,18 +221,33 @@ class ProductCreate(BaseModel):
     width_cm: Optional[float] = 0.0
     height_cm: Optional[float] = 0.0
     wax_type: Optional[str] = None
-    wax_weight_g: Optional[float] = 0.0
+    wax_rate: Optional[float] = 0.0
+    fragrance_type: Optional[str] = None
     fragrance_weight_g: Optional[float] = 0.0
+    fragrance_rate: Optional[float] = 0.0
     wick_type: Optional[str] = None
+    wick_rate: Optional[float] = 0.0
+    wick_quantity: Optional[int] = 1
     container_type: Optional[str] = None
+    container_rate: Optional[float] = 0.0
+    container_quantity: Optional[int] = 1
     container_details: Optional[str] = None
+    box_type: Optional[str] = None
     box_price: Optional[float] = 0.0
+    box_quantity: Optional[int] = 1
     wrap_price: Optional[float] = 0.0
+    business_card_cost: Optional[float] = 0.0
+    labor_time: Optional[int] = 0
+    labor_rate: Optional[float] = 0.0
     total_cost: Optional[float] = 0.0
+    selling_price: Optional[float] = 0.0
+    amazon_data: Optional[dict] = None
+    etsy_data: Optional[dict] = None
+    common_data: Optional[dict] = None
     image: Optional[str] = None # Base64 string
 
 class ProductUpdate(BaseModel):
-    name: Optional[str] = None
+    title: Optional[str] = None
     sku: Optional[str] = None
     upc: Optional[str] = None
     description: Optional[str] = None
@@ -243,13 +258,29 @@ class ProductUpdate(BaseModel):
     height_cm: Optional[float] = None
     wax_type: Optional[str] = None
     wax_weight_g: Optional[float] = None
+    wax_rate: Optional[float] = None
+    fragrance_type: Optional[str] = None
     fragrance_weight_g: Optional[float] = None
+    fragrance_rate: Optional[float] = None
     wick_type: Optional[str] = None
+    wick_rate: Optional[float] = None
+    wick_quantity: Optional[int] = None
     container_type: Optional[str] = None
+    container_rate: Optional[float] = None
+    container_quantity: Optional[int] = None
     container_details: Optional[str] = None
+    box_type: Optional[str] = None
     box_price: Optional[float] = None
+    box_quantity: Optional[int] = None
     wrap_price: Optional[float] = None
+    business_card_cost: Optional[float] = None
+    labor_time: Optional[int] = None
+    labor_rate: Optional[float] = None
     total_cost: Optional[float] = None
+    selling_price: Optional[float] = None
+    amazon_data: Optional[dict] = None
+    etsy_data: Optional[dict] = None
+    common_data: Optional[dict] = None
     image: Optional[str] = None
 
 @router.get("/products")
@@ -261,6 +292,15 @@ def get_products():
             if p.get('image'):
                 if isinstance(p['image'], bytes):
                     p['image'] = base64.b64encode(p['image']).decode('utf-8')
+            # JSON fields are likely returned as strings/dicts depending on DB driver
+            # MySQL connector might return string or dict if using JSON column
+            # Ensure they are proper JSON
+            import json
+            for key in ['amazon_data', 'etsy_data', 'common_data']:
+                if p.get(key) and isinstance(p[key], str):
+                    try:
+                        p[key] = json.loads(p[key])
+                    except: pass
         return products
     except Exception as e:
         logger.error(f"Error getting products: {e}", exc_info=True)
@@ -275,10 +315,10 @@ def add_product(item: ProductCreate):
             try:
                 data['image'] = base64.b64decode(data['image'])
             except Exception:
-                 data['image'] = None # Handle bad base64
+                data['image'] = None # Handle bad base64
         
-        product_ops.create_product(data, table=PRODUCTS_TABLE_NAME)
-        return {"message": "Product added"}
+        new_id = product_ops.create_product(data, table=PRODUCTS_TABLE_NAME)
+        return {"id": new_id, "message": "Product added"}
     except Exception as e:
         logger.error(f"Error adding product: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
@@ -287,10 +327,14 @@ def add_product(item: ProductCreate):
 def update_product(p_id: int, item: ProductUpdate):
     try:
         data = item.model_dump(exclude_unset=True)
+        print(f"DEBUG: update_product received keys: {data.keys()}")
         if data.get('image'):
+             print(f"DEBUG: update_product has image data length: {len(data['image'])}")
              try:
                 data['image'] = base64.b64decode(data['image'])
-             except Exception:
+                print(f"DEBUG: decoded image length: {len(data['image'])}")
+             except Exception as e:
+                 print(f"DEBUG: Image decode failed: {e}")
                  data['image'] = None
 
         product_ops.update_product(p_id, data, table=PRODUCTS_TABLE_NAME)
@@ -306,4 +350,42 @@ def delete_product(p_id: int):
         return {"message": "Product deleted"}
     except Exception as e:
         logger.error(f"Error deleting product: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- Product Images Routes ---
+class ImageCreate(BaseModel):
+    product_id: int
+    image_data: str # Base64
+    display_order: Optional[int] = 0
+
+@router.get("/products/{p_id}/images")
+def get_product_images(p_id: int):
+    try:
+        images = product_ops.get_product_images(p_id)
+        # Convert BLOB to Base64
+        for img in images:
+            if img.get('image_data'):
+                img['image_data'] = base64.b64encode(img['image_data']).decode('utf-8')
+        return images
+    except Exception as e:
+        logger.error(f"Error getting images: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/products/{p_id}/images")
+def add_product_image(p_id: int, item: ImageCreate):
+    try:
+        data = base64.b64decode(item.image_data)
+        new_id = product_ops.add_product_image(p_id, data, item.display_order)
+        return {"id": new_id, "message": "Image added"}
+    except Exception as e:
+        logger.error(f"Error adding image: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/products/images/{img_id}")
+def delete_product_image(img_id: int):
+    try:
+         product_ops.delete_product_image(img_id)
+         return {"message": "Image deleted"}
+    except Exception as e:
+        logger.error(f"Error deleting image: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))

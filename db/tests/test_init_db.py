@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from db.init_db import init_db, generate_create_table_sql
+from db.init_db import init_db, generate_create_table_sql, create_table
 
 def test_generate_create_table_sql_empty():
     """Test using empty schema"""
@@ -29,8 +29,8 @@ def test_init_db_table_missing():
         # Patch DB_SCHEMA to ensure it's not empty
         test_schema = {"col1": "INT"}
         
-        # init_db now takes schema as arg
-        init_db("missing_table", test_schema)
+        # Call create_table directly to test single table logic
+        create_table("missing_table", test_schema)
         
         # verify execute called with valid SQL
         call_args = mock_cursor.execute.call_args_list

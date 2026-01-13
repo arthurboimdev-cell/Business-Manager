@@ -1,6 +1,10 @@
 import os
 from db.db_connection import get_db_connection
-from config.config import DB_SCHEMA
+from config.config import (
+    TABLE_NAME, PRODUCTS_TABLE_NAME, MATERIALS_TABLE, PRODUCT_IMAGES_TABLE,
+    TRANSACTIONS_SCHEMA, PRODUCTS_SCHEMA, MATERIALS_SCHEMA, PRODUCT_IMAGES_SCHEMA,
+    DB_SCHEMA
+)
 
 def generate_create_table_sql(table_name, schema):
     if not schema:
@@ -14,7 +18,7 @@ def generate_create_table_sql(table_name, schema):
     columns_block = ",\n".join(columns_sql)
     return f"CREATE TABLE IF NOT EXISTS {table_name} (\n{columns_block}\n);"
 
-def init_db(table_name, schema):
+def create_table(table_name, schema):
     """
     Checks if table exists. If not, generates SQL from schema and creates it.
     """
@@ -44,3 +48,9 @@ def init_db(table_name, schema):
     finally:
         cursor.close()
         conn.close()
+
+def init_db(table_name=TABLE_NAME, schema=TRANSACTIONS_SCHEMA):
+    create_table(table_name, schema)
+    create_table(PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA)
+    create_table(MATERIALS_TABLE, MATERIALS_SCHEMA)
+    create_table(PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA)

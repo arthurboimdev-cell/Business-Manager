@@ -14,21 +14,18 @@ def setup_database():
     # Setup
     conn = get_db_connection()
     cursor = conn.cursor()
+    # Drop in correct order (child first)
+    cursor.execute("DROP TABLE IF EXISTS product_images")
     cursor.execute(f"DROP TABLE IF EXISTS {PRODUCTS_TABLE_NAME}")
     conn.commit()
     cursor.close()
     conn.close()
 
     # Setup
+    # Init Tables
+    from config.config import PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA
     init_db(PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA)
-    
-    # Ensure it's clean (redundant after drop/create but safe)
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(f"TRUNCATE TABLE {PRODUCTS_TABLE_NAME}")
-    conn.commit()
-    cursor.close()
-    conn.close()
+    init_db(PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA)
     
     yield
     
@@ -42,7 +39,7 @@ def setup_database():
 
 def test_add_product():
     product_data = {
-        "name": "Test Candle",
+        "title": "Test Candle",
         "sku": "SKU-123",
         "upc": "UPC-456",
         "description": "A test candle",
@@ -63,24 +60,27 @@ def test_add_product():
     
     response = client.post("/products", json=product_data)
     assert response.status_code == 200
-    assert response.json() == {"message": "Product added"}
+    data = response.json()
+    assert "id" in data
+    assert data["message"] == "Product added"
 
 def test_get_products():
     response = client.get("/products")
     assert response.status_code == 200
     products = response.json()
     assert len(products) > 0
-    assert products[0]["name"] == "Test Candle"
+    assert products[0]["title"] == "Test Candle"
     assert products[0]["sku"] == "SKU-123"
     assert products[0]["upc"] == "UPC-456"
 
 def test_add_product_with_image():
     # Create a dummy small image bytes
-    dummy_bytes = b"fakeimagebytes"
+    # Valid 1x1 GIF bytes
+    dummy_bytes = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
     b64_str = base64.b64encode(dummy_bytes).decode('utf-8')
     
     product_data = {
-        "name": "Image Candle",
+        "title": "Image Candle",
         "image": b64_str
     }
     
@@ -91,7 +91,7 @@ def test_add_product_with_image():
     response = client.get("/products")
     products = response.json()
     # Find the image candle
-    found = next((p for p in products if p["name"] == "Image Candle"), None)
+    found = next((p for p in products if p["title"] == "Image Candle"), None)
     assert found is not None
     assert found["image"] == b64_str
 

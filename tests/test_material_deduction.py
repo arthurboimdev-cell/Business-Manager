@@ -8,6 +8,7 @@ def setup_module():
     conn = get_db_connection()
     c = conn.cursor()
     # Cleanup all test tables
+    c.execute(f"DROP TABLE IF EXISTS product_images")
     c.execute(f"DROP TABLE IF EXISTS {PRODUCTS_TABLE_NAME}")
     c.execute(f"DROP TABLE IF EXISTS {TABLE_NAME}")
     c.execute(f"DROP TABLE IF EXISTS {MATERIALS_TABLE}")
@@ -16,9 +17,11 @@ def setup_module():
     conn.close()
 
     # Re-init
+    from config.config import PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA
     init_db(PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA)
     init_db(TABLE_NAME, TRANSACTIONS_SCHEMA)
     init_db(MATERIALS_TABLE, MATERIALS_SCHEMA)
+    init_db(PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA)
 
 def test_material_deduction_on_sale():
     # 1. Setup Materials with initial stock

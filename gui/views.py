@@ -51,8 +51,8 @@ class InputFrame(tb.Frame):
 
     def update_products(self, products):
         self.products = products
-        # Populate Combobox values with Product Names
-        names = [p['name'] for p in products]
+        # Populate Combobox values with Product titles
+        names = [p['title'] for p in products]
         self.entry_desc['values'] = names
         
     def _on_product_selected(self, event):
@@ -61,7 +61,7 @@ class InputFrame(tb.Frame):
         if not selected_name:
             return
             
-        found = next((p for p in self.products if p['name'] == selected_name), None)
+        found = next((p for p in self.products if p['title'] == selected_name), None)
         if found:
             # We don't have a selling price, but we could default to something or just leave it.
             # But the user asked for "Auto-fills Description and Price"
@@ -76,7 +76,7 @@ class InputFrame(tb.Frame):
 
     def get_selected_product_id(self):
         name = self.entry_desc.get()
-        found = next((p for p in self.products if p['name'] == name), None)
+        found = next((p for p in self.products if p['title'] == name), None)
         return found['id'] if found else None
 
     def create_field(self, label, row, var_name):

@@ -190,7 +190,7 @@ class TransactionController:
 
         # GLOBAL REFRESH: Ensure all tabs are up to date
         if hasattr(self, 'products_tab'):
-            self.products_tab.refresh_prods_and_mats()
+            self.products_tab.refresh_product_list()
             
         if hasattr(self, 'materials_tab'):
             self.materials_tab.refresh()

@@ -32,5 +32,5 @@ def test_refresh_ui_calls_tabs(mock_controller):
     mock_controller.refresh_ui()
     
     # Verify calls
-    mock_controller.products_tab.refresh_prods_and_mats.assert_called_once()
+    mock_controller.products_tab.refresh_product_list.assert_called_once()
     mock_controller.materials_tab.refresh.assert_called_once()
