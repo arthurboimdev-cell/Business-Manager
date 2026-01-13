@@ -15,7 +15,10 @@ def create_product(product_data, table=PRODUCTS_TABLE_NAME):
     
     columns = [
         "name", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
-        "wax_type", "wax_weight_g", "wick_type", "container_type", "container_details",
+        "wax_type", "wax_weight_g", "wax_rate", 
+        "fragrance_weight_g", "fragrance_rate",
+        "wick_type", "wick_rate", 
+        "container_type", "container_rate", "container_details",
         "box_price", "wrap_price", "business_card_cost", "labor_time", "labor_rate", 'image'
     ]
     
@@ -72,7 +75,10 @@ def update_product(product_id, product_data, table=PRODUCTS_TABLE_NAME):
     
     columns = [
         "name", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
-        "wax_type", "wax_weight_g", "wick_type", "container_type", "container_details",
+        "wax_type", "wax_weight_g", "wax_rate", 
+        "fragrance_weight_g", "fragrance_rate",
+        "wick_type", "wick_rate", 
+        "container_type", "container_rate", "container_details",
         "box_price", "wrap_price", "business_card_cost", "labor_time", "labor_rate", 'image'
     ]
     
