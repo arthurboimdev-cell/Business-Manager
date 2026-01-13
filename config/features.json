@@ -30,5 +30,9 @@
     "shipping": {
         "enabled": true,
         "description": "Enables the 'Shipping' tab for calculating rates."
+    },
+    "marketplace": {
+        "enabled": true,
+        "description": "Enables the 'Marketplace' tab for fee calculations."
     }
 }

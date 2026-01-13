@@ -6,6 +6,7 @@ from ttkbootstrap.constants import *
 from config.config import TREE_COLUMNS, TRANSACTION_TYPES, BUTTON_ADD, BUTTON_CLEAR, UI_LABELS, UI_BUTTONS
 from gui.charts import AnalyticsFrame
 from gui.tabs.shipping_tab import ShippingTab
+from gui.tabs.marketplace_tab import MarketplaceTab
 
 class InputFrame(tb.Frame):
     def __init__(self, parent, transaction_types, on_add, on_clear, on_update):
@@ -269,6 +270,11 @@ class MainWindow(tb.Window):
         if self.features.get("shipping", True):
             self.tab_shipping = ShippingTab(self.notebook)
             self.notebook.add(self.tab_shipping, text="Shipping")
+
+        # Tab 6: Marketplace (NEW)
+        if self.features.get("marketplace", True):
+            self.tab_marketplace = MarketplaceTab(self.notebook)
+            self.notebook.add(self.tab_marketplace, text="Marketplace")
 
     def hide_analytics_tab(self):
         self.notebook.forget(self.tab_analytics)
