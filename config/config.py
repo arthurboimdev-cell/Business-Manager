@@ -5,7 +5,23 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Load local.env (same folder as this file)
-env_path = Path(__file__).parent / "local.env"
+# Load local.env (same folder as this file)
+if getattr(sys, 'frozen', False):
+    # Running as compiled exe
+    # 1. Try external config/local.env next to exe (allows user override)
+    base_dir = Path(sys.executable).parent
+    external_env = base_dir / "config" / "local.env"
+    
+    if external_env.exists():
+        env_path = external_env
+    else:
+        # 2. Fallback to internal bundled file
+        # PyInstaller extracts to sys._MEIPASS
+        env_path = Path(getattr(sys, "_MEIPASS", ".")) / "config" / "local.env"
+else:
+    # Running as script
+    env_path = Path(__file__).parent / "local.env"
+
 load_dotenv(env_path)
 
 # --- Load JSON Configuration ---

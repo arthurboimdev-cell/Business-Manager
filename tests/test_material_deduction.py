@@ -31,7 +31,7 @@ def test_material_deduction_on_sale():
     # 2. Create Product using these materials
     # Uses 200g wax per unit, 1 jar per unit
     p_id = products.create_product({
-        "name": "Luxury Candle",
+        "title": "Luxury Candle",
         "wax_type": "Soy Wax",
         "wax_weight_g": 200.0,
         "container_type": "Glass Jar",

@@ -33,6 +33,27 @@ def build_executable():
     ], check=True)
     print("Executable built in dist/ folder.")
 
+    # Copy config folder to dist
+    print("Copying config files...")
+    import shutil
+    dist_config = os.path.join("dist", "config")
+    if os.path.exists(dist_config):
+        shutil.rmtree(dist_config)
+    
+    # We want config.json and local.env. 
+    # Just copying the whole folder is easiest, but maybe filter?
+    # shutil.copytree("config", dist_config)
+    
+    os.makedirs(dist_config, exist_ok=True)
+    
+    # Copy specific files
+    for f in ["config.json", "local.env"]:
+        src = os.path.join("config", f)
+        if os.path.exists(src):
+            shutil.copy2(src, os.path.join(dist_config, f))
+            print(f"Copied {f}")
+
+
 def main():
     if run_tests():
         print("All tests passed")

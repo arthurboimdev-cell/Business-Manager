@@ -17,7 +17,7 @@ def create_product(product_data, table=PRODUCTS_TABLE_NAME):
     columns = [
         "title", "sku", "upc", "description", "stock_quantity", "weight_g", "length_cm", "width_cm", "height_cm",
         "wax_type", "wax_weight_g", "wax_rate", 
-        "fragrance_weight_g", "fragrance_rate",
+        "fragrance_type", "fragrance_weight_g", "fragrance_rate",
         "wick_type", "wick_rate", "wick_quantity", 
         "container_type", "container_rate", "container_quantity", "container_details",
         "box_type", "box_price", "box_quantity", "wrap_price", "business_card_cost", "labor_time", "labor_rate", "selling_price", 
@@ -41,15 +41,14 @@ def create_product(product_data, table=PRODUCTS_TABLE_NAME):
     
     sql = f"INSERT INTO {table} ({cols_str}) VALUES ({placeholders})"
     
-    try:
-        cursor.execute(sql, list(data.values()))
-        conn.commit()
-        return cursor.lastrowid
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    finally:
-        cursor.close()
-        conn.close()
+    sql = f"INSERT INTO {table} ({cols_str}) VALUES ({placeholders})"
+    
+    cursor.execute(sql, list(data.values()))
+    conn.commit()
+    new_id = cursor.lastrowid
+    cursor.close()
+    conn.close()
+    return new_id
 
 def get_products(table=PRODUCTS_TABLE_NAME):
     conn = get_db_connection()
@@ -109,14 +108,12 @@ def update_product(product_id, product_data, table=PRODUCTS_TABLE_NAME):
     
     sql = f"UPDATE {table} SET {set_clause} WHERE id = %s"
     
-    try:
-        cursor.execute(sql, values)
-        conn.commit()
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    finally:
-        cursor.close()
-        conn.close()
+    sql = f"UPDATE {table} SET {set_clause} WHERE id = %s"
+    
+    cursor.execute(sql, values)
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 def delete_product(product_id, table=PRODUCTS_TABLE_NAME):
     conn = get_db_connection()

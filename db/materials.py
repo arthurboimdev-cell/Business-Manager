@@ -59,7 +59,7 @@ def deduct_stock_by_name(name, amount, table=MATERIALS_TABLE):
         return
         
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(buffered=True)
     try:
         # 1. Find ID
         cursor.execute(f"SELECT id, stock_quantity FROM {table} WHERE name = %s", (name,))
