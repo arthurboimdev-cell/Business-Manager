@@ -72,6 +72,23 @@ class APIClient:
             return []
 
     @staticmethod
+    def get_product(p_id):
+        try:
+            response = requests.get(f"{APIClient.BASE_URL}/products/{p_id}")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"API Error: {e}")
+            # For single item get, usually return None or raise. 
+            # Pattern in this file seems to be mixed: lists return [], adds raise.
+            # Let's return None for consistent "safe" fetch if that was the intent, 
+            # OR raise if caller handles it. 
+            # existing add_product raises. 
+            # existing get_products returns [].
+            # Getting a single item usually implies presence check. Return None is safer for UI not crashing.
+            return None
+
+    @staticmethod
     def add_product(product_data):
         import base64
         # Handle Byte Image -> Base64 String

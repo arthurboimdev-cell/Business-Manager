@@ -39,6 +39,10 @@ def mock_tk_env():
         import gui.forms.product_form
         importlib.reload(gui.forms.product_form)
         yield
+        
+    # Cleanup: Reload to restore real module state
+    import gui.forms.product_form
+    importlib.reload(gui.forms.product_form)
 
 @pytest.fixture
 def form(mock_tk_env):
