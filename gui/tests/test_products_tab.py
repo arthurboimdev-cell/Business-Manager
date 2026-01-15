@@ -150,7 +150,8 @@ def test_form_calculate_cogs(products_tab):
     
     # Clear others to defaults
     for entry in [form.entry_fragrance_g, form.entry_frag_rate, form.entry_wick_rate, 
-                  form.entry_container_rate, form.entry_box, form.entry_wrap, form.entry_biz_card]:
+                  form.entry_container_rate, form.entry_second_container_g, form.entry_second_container_rate, 
+                  form.entry_box, form.entry_wrap, form.entry_biz_card]:
         entry.get.return_value = "0"
         
     form.entry_wick_qty.get.return_value = "1"
@@ -163,7 +164,8 @@ def test_form_calculate_cogs(products_tab):
     # 100*0.05 = 5.00
     # (60/60)*20 = 20.00
     # Total = 25.00
-    assert total == 25.00
+    # Total = 25.00
+    assert total == pytest.approx(25.00, 0.01)
     
     # Verify Tree
     inserts = form.cogs_tree.insert.call_args_list

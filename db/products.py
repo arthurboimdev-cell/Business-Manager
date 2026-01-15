@@ -19,7 +19,8 @@ def create_product(product_data, table=PRODUCTS_TABLE_NAME):
         "wax_type", "wax_weight_g", "wax_rate", 
         "fragrance_type", "fragrance_weight_g", "fragrance_rate",
         "wick_type", "wick_rate", "wick_quantity", 
-        "container_type", "container_rate", "container_quantity", "container_details",
+        "container_type", "container_rate", "container_quantity", "container_unit", "container_details",
+        "second_container_type", "second_container_weight_g", "second_container_rate",
         "box_type", "box_price", "box_quantity", "wrap_price", "business_card_cost", "labor_time", "labor_rate", "selling_price", 
         "amazon_data", "etsy_data", "common_data", 'image'
     ]
@@ -87,7 +88,8 @@ def update_product(product_id, product_data, table=PRODUCTS_TABLE_NAME):
         "wax_type", "wax_weight_g", "wax_rate", 
         "fragrance_type", "fragrance_weight_g", "fragrance_rate",
         "wick_type", "wick_rate", "wick_quantity",
-        "container_type", "container_rate", "container_quantity", "container_details",
+        "container_type", "container_rate", "container_quantity", "container_unit", "container_details",
+        "second_container_type", "second_container_weight_g", "second_container_rate",
         "box_type", "box_price", "box_quantity", "wrap_price", "business_card_cost", "labor_time", "labor_rate", "total_cost", "selling_price",
         "amazon_data", "etsy_data", "common_data", 'image'
     ]

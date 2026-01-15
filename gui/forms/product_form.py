@@ -181,8 +181,8 @@ class ProductForm(tk.Frame):
         self.entry_wick_rate = tk.Entry(frame_bom, width=8)
         self.entry_wick_rate.grid(row=2, column=5, padx=2, sticky="w")
         
-        # Container
-        tk.Label(frame_bom, text="Container:").grid(row=3, column=0, sticky="w")
+        # Container Row (Unit-based / Glass)
+        tk.Label(frame_bom, text="Container 1:").grid(row=3, column=0, sticky="w")
         self.entry_container_name = tk.Entry(frame_bom, width=15)
         self.entry_container_name.grid(row=3, column=1, padx=2)
         
@@ -195,37 +195,50 @@ class ProductForm(tk.Frame):
         self.entry_container_rate = tk.Entry(frame_bom, width=8)
         self.entry_container_rate.grid(row=3, column=5, padx=2, sticky="w")
         
-        # Box 
-        tk.Label(frame_bom, text="Box Name:").grid(row=4, column=0, sticky="w")
-        self.entry_box_name = tk.Entry(frame_bom, width=15)
-        self.entry_box_name.grid(row=4, column=1, padx=2)
+        # Container 2 (Weight-based / Gypsum)
+        tk.Label(frame_bom, text="Container 2 (Gypsum):").grid(row=4, column=0, sticky="w")
+        self.entry_second_container_name = tk.Entry(frame_bom, width=15)
+        self.entry_second_container_name.grid(row=4, column=1, padx=2)
         
-        tk.Label(frame_bom, text="Qty:").grid(row=4, column=2, sticky="w")
+        tk.Label(frame_bom, text="Weight (g):").grid(row=4, column=2, sticky="w")
+        self.entry_second_container_g = tk.Entry(frame_bom, width=6)
+        self.entry_second_container_g.grid(row=4, column=3, padx=2, sticky="w")
+        
+        tk.Label(frame_bom, text="Rate ($/kg):").grid(row=4, column=4, sticky="w")
+        self.entry_second_container_rate = tk.Entry(frame_bom, width=8)
+        self.entry_second_container_rate.grid(row=4, column=5, padx=2, sticky="w")
+        
+        # Box 
+        tk.Label(frame_bom, text="Box Name:").grid(row=5, column=0, sticky="w")
+        self.entry_box_name = tk.Entry(frame_bom, width=15)
+        self.entry_box_name.grid(row=5, column=1, padx=2)
+        
+        tk.Label(frame_bom, text="Qty:").grid(row=5, column=2, sticky="w")
         self.entry_box_qty = tk.Entry(frame_bom, width=5)
-        self.entry_box_qty.grid(row=4, column=3, padx=2, sticky="w")
+        self.entry_box_qty.grid(row=5, column=3, padx=2, sticky="w")
         self.entry_box_qty.insert(0, "1")
         
-        tk.Label(frame_bom, text="Rate ($/unit):").grid(row=4, column=4, sticky="w")
+        tk.Label(frame_bom, text="Rate ($/unit):").grid(row=5, column=4, sticky="w")
         self.entry_box = tk.Entry(frame_bom, width=8)
-        self.entry_box.grid(row=4, column=5, padx=2, sticky="w")
+        self.entry_box.grid(row=5, column=5, padx=2, sticky="w")
         
-        # Wrap & Biz Card (Row 5)
-        tk.Label(frame_bom, text="Wrap ($):").grid(row=5, column=0, sticky="w")
+        # Wrap & Biz Card (Row 6)
+        tk.Label(frame_bom, text="Wrap ($):").grid(row=6, column=0, sticky="w")
         self.entry_wrap = tk.Entry(frame_bom, width=6)
-        self.entry_wrap.grid(row=5, column=1, padx=2, sticky="w")
+        self.entry_wrap.grid(row=6, column=1, padx=2, sticky="w")
         
-        tk.Label(frame_bom, text="Biz Card ($):").grid(row=5, column=2, sticky="w")
+        tk.Label(frame_bom, text="Biz Card ($):").grid(row=6, column=2, sticky="w")
         self.entry_biz_card = tk.Entry(frame_bom, width=6)
-        self.entry_biz_card.grid(row=5, column=3, padx=2, sticky="w")
+        self.entry_biz_card.grid(row=6, column=3, padx=2, sticky="w")
         
-        # Labor (Row 6)
-        tk.Label(frame_bom, text="Labor Time (min):").grid(row=6, column=0, sticky="w")
+        # Labor (Row 7)
+        tk.Label(frame_bom, text="Labor Time (min):").grid(row=7, column=0, sticky="w")
         self.entry_labor_time = tk.Entry(frame_bom, width=6)
-        self.entry_labor_time.grid(row=6, column=1, padx=2, sticky="w")
+        self.entry_labor_time.grid(row=7, column=1, padx=2, sticky="w")
         
-        tk.Label(frame_bom, text="Labor Rate ($/h):").grid(row=6, column=2, sticky="w")
+        tk.Label(frame_bom, text="Labor Rate ($/h):").grid(row=7, column=2, sticky="w")
         self.entry_labor_rate = tk.Entry(frame_bom, width=6)
-        self.entry_labor_rate.grid(row=6, column=3, padx=2, sticky="w")
+        self.entry_labor_rate.grid(row=7, column=3, padx=2, sticky="w")
         self.entry_labor_rate.insert(0, str(DEFAULT_LABOR_RATE))
         
         # Bindings
@@ -233,6 +246,7 @@ class ProductForm(tk.Frame):
                       self.entry_frag_name, self.entry_fragrance_g, self.entry_frag_rate,
                       self.entry_wick_name, self.entry_wick_qty, self.entry_wick_rate,
                       self.entry_container_name, self.entry_container_qty, self.entry_container_rate,
+                      self.entry_second_container_name, self.entry_second_container_g, self.entry_second_container_rate,
                       self.entry_box_name, self.entry_box, self.entry_box_qty,
                       self.entry_wrap, self.entry_biz_card,
                       self.entry_labor_time, self.entry_labor_rate]:
@@ -299,13 +313,24 @@ class ProductForm(tk.Frame):
              self.cogs_tree.insert("", "end", values=("Wick", f"{wick_qty} units", f"${wick_rate}", f"${cost:.2f}"))
              total_cost += cost
         
-        # 4. Container
-        cont_qty = get_val(self.entry_container_qty, is_float=False, default=1)
-        cont_rate = get_val(self.entry_container_rate)
-        if cont_rate > 0:
-             cost = cont_qty * cont_rate
-             self.cogs_tree.insert("", "end", values=("Container", f"{cont_qty} units", f"${cont_rate}", f"${cost:.2f}"))
+        # 4. Container 1 (Unit Based)
+        cont1_qty = get_val(self.entry_container_qty, is_float=False, default=1)
+        cont1_rate = get_val(self.entry_container_rate)
+        if cont1_rate > 0:
+             cost = cont1_qty * cont1_rate
+             self.cogs_tree.insert("", "end", values=("Container 1", f"{cont1_qty} units", f"${cont1_rate}/unit", f"${cost:.2f}"))
              total_cost += cost
+
+        # 5. Container 2 (Weight Based - Gypsum)
+        cont2_g = get_val(self.entry_second_container_g)
+        cont2_rate = get_val(self.entry_second_container_rate)
+        if cont2_g > 0:
+             # Rate is $/kg, so divide by 1000
+             cost = cont2_g * (cont2_rate / 1000)
+             self.cogs_tree.insert("", "end", values=("Container 2", f"{cont2_g} g", f"${cont2_rate}/kg", f"${cost:.2f}"))
+             total_cost += cost
+             
+        # 6. Box
 
         # 5. Box
         box_qty = get_val(self.entry_box_qty, is_float=False, default=1)
@@ -402,11 +427,16 @@ class ProductForm(tk.Frame):
 
             self.entry_rec_price.config(state="readonly")
             
-        # Calculate Total Weight = Wax + Fragrance
+        # Calculate Total Weight = Wax + Fragrance + Container 2 (Gypsum)
         # Only if we have valid values
         calc_weight = 0.0
         if wax_g > 0: calc_weight += wax_g
         if frag_g > 0: calc_weight += frag_g
+        
+        # Add container weight if gypsum/weight-based
+        cont2_g = get_val(self.entry_second_container_g)
+        if cont2_g > 0:
+            calc_weight += cont2_g
         
         # Update Weight Entry if calculated weight > 0
         # Check if user manually edited it? 
@@ -605,7 +635,9 @@ class ProductForm(tk.Frame):
                       self.entry_weight, self.entry_wax_name, self.entry_wax_g, self.entry_wax_rate,
                       self.entry_frag_name, self.entry_fragrance_g, self.entry_frag_rate,
                       self.entry_wick_name, self.entry_wick_rate, self.entry_container_name, 
-                      self.entry_container_rate, self.entry_box_name, self.entry_box, 
+                      self.entry_container_rate, self.entry_second_container_name, 
+                      self.entry_second_container_g, self.entry_second_container_rate,
+                      self.entry_box_name, self.entry_box, 
                       self.entry_wrap, self.entry_biz_card, self.entry_labor_time]:
             entry.delete(0, tk.END)
             
@@ -675,6 +707,10 @@ class ProductForm(tk.Frame):
         set_val(self.entry_container_rate, data.get('container_rate'))
         set_val(self.entry_container_qty, data.get('container_quantity'))
         
+        set_val(self.entry_second_container_name, data.get('second_container_type'))
+        set_val(self.entry_second_container_g, data.get('second_container_weight_g'))
+        set_val(self.entry_second_container_rate, data.get('second_container_rate'))
+
         set_val(self.entry_box_name, data.get('box_type'))
         set_val(self.entry_box, data.get('box_price'))
         set_val(self.entry_box_qty, data.get('box_quantity'))
@@ -733,7 +769,10 @@ class ProductForm(tk.Frame):
             "wick_quantity": int(self.entry_wick_qty.get() or 1),
             "container_type": self.entry_container_name.get(),
             "container_rate": float(self.entry_container_rate.get() or 0),
-            "container_quantity": int(self.entry_container_qty.get() or 1),
+            "container_quantity": int(self.entry_container_qty.get() or 1), 
+            "second_container_type": self.entry_second_container_name.get(),
+            "second_container_weight_g": float(self.entry_second_container_g.get() or 0),
+            "second_container_rate": float(self.entry_second_container_rate.get() or 0),
             "box_type": self.entry_box_name.get(),
             "box_price": float(self.entry_box.get() or 0),
             "box_quantity": int(self.entry_box_qty.get() or 1),
