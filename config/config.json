@@ -65,6 +65,7 @@
             "business_card_cost": "DECIMAL(10, 2)",
             "labor_time": "INT DEFAULT 0",
             "labor_rate": "DECIMAL(10, 2) DEFAULT 0.00",
+            "total_cost": "DECIMAL(10, 2) DEFAULT 0.00",
             "selling_price": "DECIMAL(10, 2) DEFAULT 0.00",
             "amazon_data": "JSON",
             "etsy_data": "JSON",
@@ -112,5 +113,11 @@
     "transaction_types": [
         "expense",
         "income"
-    ]
+    ],
+    "pricing": {
+        "enabled": true,
+        "markup_max": 5.0,
+        "markup_min": 1.5,
+        "decay_factor": 15.0
+    }
 }

@@ -89,6 +89,11 @@ class ProductForm(tk.Frame):
         self.entry_profit = tk.Entry(frame_general, width=12, state="readonly", fg="green", readonlybackground=default_bg)
         self.entry_profit.grid(row=5, column=3, sticky="w", padx=2)
 
+        # Recommended Price (Row 6)
+        tk.Label(frame_general, text="Rec. Price:").grid(row=6, column=2, sticky="w")
+        self.entry_rec_price = tk.Entry(frame_general, width=12, state="readonly", fg="blue", readonlybackground=default_bg)
+        self.entry_rec_price.grid(row=6, column=3, sticky="w", padx=2)
+
         # --- Right Side: Main Image Preview ---
         frame_right = tk.LabelFrame(frame_top, text="Main Image", padx=5, pady=5)
         frame_right.pack(side="right", fill="y", padx=5)
@@ -351,6 +356,64 @@ class ProductForm(tk.Frame):
         self.entry_profit.delete(0, "end")
         self.entry_profit.insert(0, f"${profit:.2f}")
         self.entry_profit.config(state="readonly")
+
+        self.entry_profit.config(state="readonly")
+
+        # Calculate Recommended Price logic
+        # Price = (Materials * M) + Labor
+        # M = M_min + (M_max - M_min) / (1 + (Cost / Decay))
+        
+        # 1. Separate Materials from Labor
+        # We calculated total_cost earlier which includes Labor.
+        # We also calculated l_cost explicitly.
+        # If l_cost was not calculated (not in 'if' block), it defaults to 0.
+        
+        # Re-calc labor cost to be sure (scope issue if not defined in if)
+        labor_cost_val = 0.0
+        l_time_val = get_val(self.entry_labor_time, is_float=False, default=0)
+        l_rate_val = get_val(self.entry_labor_rate)
+        if l_time_val > 0 and l_rate_val > 0:
+             labor_cost_val = (l_time_val / 60) * l_rate_val
+             
+        material_cost = total_cost - labor_cost_val
+        
+        # Get Config Params
+        from config.config import config_data
+        pricing = config_data.get("pricing", {})
+        if pricing.get("enabled", False):
+            m_max = pricing.get("markup_max", 5.0)
+            m_min = pricing.get("markup_min", 1.5)
+            decay = pricing.get("decay_factor", 20.0)
+            
+            # Formlua
+            # Avoid division by zero if decay is 0 (unlikely but safe)
+            denominator = 1 + (material_cost / decay) if decay else 1
+            markup = m_min + (m_max - m_min) / denominator
+            
+            rec_price = (material_cost * markup) + labor_cost_val
+            
+            # Build string with explanation tooltip? Just val for now.
+            disp_str = f"${rec_price:.2f} (x{markup:.2f})"
+            
+            self.entry_rec_price.config(state="normal")
+            self.entry_rec_price.delete(0, "end")
+            self.entry_rec_price.insert(0, disp_str)
+            self.entry_rec_price.config(state="readonly")
+
+            self.entry_rec_price.config(state="readonly")
+            
+        # Calculate Total Weight = Wax + Fragrance
+        # Only if we have valid values
+        calc_weight = 0.0
+        if wax_g > 0: calc_weight += wax_g
+        if frag_g > 0: calc_weight += frag_g
+        
+        # Update Weight Entry if calculated weight > 0
+        # Check if user manually edited it? 
+        # Strategy: Always update if calculated > 0.
+        if calc_weight > 0:
+            self.entry_weight.delete(0, "end")
+            self.entry_weight.insert(0, f"{calc_weight:.2f}")
 
         return total_cost
 

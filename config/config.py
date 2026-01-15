@@ -169,6 +169,12 @@ defaults = {
         },
         "default_labor_rate": 17.60
     },
+    "pricing": {
+        "enabled": True,
+        "markup_max": 5.0,
+        "markup_min": 1.5,
+        "decay_factor": 20.0
+    },
     "ui": {
         "labels": {
             "date": "Date:", "description": "Description:", "quantity": "Qty:", 
