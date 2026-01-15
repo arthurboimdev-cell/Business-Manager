@@ -196,9 +196,8 @@ if CONFIG_PATH.exists():
             # Merge logic could go here, for now simple override or direct use
             # We'll trust the file if it exists, maybe merging is safer but simple is better for now
             # Let's simple merge top keys
-            for key in defaults:
-                if key in file_config:
-                    config_data[key] = file_config[key]
+            # Merge logic: update defaults with file content, allowing new keys
+            config_data.update(file_config)
     except Exception as e:
         print(f"Warning: Could not load config.json: {e}")
 
@@ -257,3 +256,7 @@ FEATURES = features_config
 
 # Labor Configuration
 DEFAULT_LABOR_RATE = float(os.getenv("DEFAULT_LABOR_RATE", 17.60))
+
+# Manufacturing / BOM
+MANUFACTURING_CONFIG = config_data.get("manufacturing", {})
+BOM_LAYOUT = MANUFACTURING_CONFIG.get("bom_layout", [])

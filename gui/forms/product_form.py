@@ -138,119 +138,78 @@ class ProductForm(tk.Frame):
         frame_bom = tk.LabelFrame(parent, text="Bill of Materials", padx=5, pady=5)
         frame_bom.pack(fill="x", pady=2)
 
-        # Grid for BOM
-        # Wax
-        tk.Label(frame_bom, text="Wax Name:").grid(row=0, column=0, sticky="w")
-        self.entry_wax_name = tk.Entry(frame_bom, width=15)
-        self.entry_wax_name.grid(row=0, column=1, padx=2)
-        
-        tk.Label(frame_bom, text="Weight (g):").grid(row=0, column=2, sticky="w")
-        self.entry_wax_g = tk.Entry(frame_bom, width=6)
-        self.entry_wax_g.grid(row=0, column=3, padx=2)
-        
-        
-        tk.Label(frame_bom, text="Rate ($/kg):").grid(row=0, column=4, sticky="w")
-        self.entry_wax_rate = tk.Entry(frame_bom, width=8)
-        self.entry_wax_rate.grid(row=0, column=5, padx=2)
-        
-        # Fragrance
-        tk.Label(frame_bom, text="Frag Name:").grid(row=1, column=0, sticky="w")
-        self.entry_frag_name = tk.Entry(frame_bom, width=15)
-        self.entry_frag_name.grid(row=1, column=1, padx=2)
-        
-        tk.Label(frame_bom, text="Weight (g):").grid(row=1, column=2, sticky="w")
-        self.entry_fragrance_g = tk.Entry(frame_bom, width=6)
-        self.entry_fragrance_g.grid(row=1, column=3, padx=2)
-        
-        
-        tk.Label(frame_bom, text="Rate ($/kg):").grid(row=1, column=4, sticky="w")
-        self.entry_frag_rate = tk.Entry(frame_bom, width=8)
-        self.entry_frag_rate.grid(row=1, column=5, padx=2)
-        
-        # Wick
-        tk.Label(frame_bom, text="Wick Name:").grid(row=2, column=0, sticky="w")
-        self.entry_wick_name = tk.Entry(frame_bom, width=15)
-        self.entry_wick_name.grid(row=2, column=1, padx=2)
-        
-        tk.Label(frame_bom, text="Qty:").grid(row=2, column=2, sticky="w")
-        self.entry_wick_qty = tk.Entry(frame_bom, width=5)
-        self.entry_wick_qty.grid(row=2, column=3, padx=2, sticky="w")
-        self.entry_wick_qty.insert(0, "1")
-        
-        tk.Label(frame_bom, text="Rate ($/unit):").grid(row=2, column=4, sticky="w")
-        self.entry_wick_rate = tk.Entry(frame_bom, width=8)
-        self.entry_wick_rate.grid(row=2, column=5, padx=2, sticky="w")
-        
-        # Container Row (Unit-based / Glass)
-        tk.Label(frame_bom, text="Container 1:").grid(row=3, column=0, sticky="w")
-        self.entry_container_name = tk.Entry(frame_bom, width=15)
-        self.entry_container_name.grid(row=3, column=1, padx=2)
-        
-        tk.Label(frame_bom, text="Qty:").grid(row=3, column=2, sticky="w")
-        self.entry_container_qty = tk.Entry(frame_bom, width=5)
-        self.entry_container_qty.grid(row=3, column=3, padx=2, sticky="w")
-        self.entry_container_qty.insert(0, "1")
-        
-        tk.Label(frame_bom, text="Rate ($/unit):").grid(row=3, column=4, sticky="w")
-        self.entry_container_rate = tk.Entry(frame_bom, width=8)
-        self.entry_container_rate.grid(row=3, column=5, padx=2, sticky="w")
-        
-        # Container 2 (Weight-based / Gypsum)
-        tk.Label(frame_bom, text="Container 2 (Gypsum):").grid(row=4, column=0, sticky="w")
-        self.entry_second_container_name = tk.Entry(frame_bom, width=15)
-        self.entry_second_container_name.grid(row=4, column=1, padx=2)
-        
-        tk.Label(frame_bom, text="Weight (g):").grid(row=4, column=2, sticky="w")
-        self.entry_second_container_g = tk.Entry(frame_bom, width=6)
-        self.entry_second_container_g.grid(row=4, column=3, padx=2, sticky="w")
-        
-        tk.Label(frame_bom, text="Rate ($/kg):").grid(row=4, column=4, sticky="w")
-        self.entry_second_container_rate = tk.Entry(frame_bom, width=8)
-        self.entry_second_container_rate.grid(row=4, column=5, padx=2, sticky="w")
-        
-        # Box 
-        tk.Label(frame_bom, text="Box Name:").grid(row=5, column=0, sticky="w")
-        self.entry_box_name = tk.Entry(frame_bom, width=15)
-        self.entry_box_name.grid(row=5, column=1, padx=2)
-        
-        tk.Label(frame_bom, text="Qty:").grid(row=5, column=2, sticky="w")
-        self.entry_box_qty = tk.Entry(frame_bom, width=5)
-        self.entry_box_qty.grid(row=5, column=3, padx=2, sticky="w")
-        self.entry_box_qty.insert(0, "1")
-        
-        tk.Label(frame_bom, text="Rate ($/unit):").grid(row=5, column=4, sticky="w")
-        self.entry_box = tk.Entry(frame_bom, width=8)
-        self.entry_box.grid(row=5, column=5, padx=2, sticky="w")
-        
-        # Wrap & Biz Card (Row 6)
-        tk.Label(frame_bom, text="Wrap ($):").grid(row=6, column=0, sticky="w")
-        self.entry_wrap = tk.Entry(frame_bom, width=6)
-        self.entry_wrap.grid(row=6, column=1, padx=2, sticky="w")
-        
-        tk.Label(frame_bom, text="Biz Card ($):").grid(row=6, column=2, sticky="w")
-        self.entry_biz_card = tk.Entry(frame_bom, width=6)
-        self.entry_biz_card.grid(row=6, column=3, padx=2, sticky="w")
-        
-        # Labor (Row 7)
-        tk.Label(frame_bom, text="Labor Time (min):").grid(row=7, column=0, sticky="w")
+        # Dynamic Generation based on Config
+        current_row = 0
+        bind_list = []
+
+        # Iterate over BOM_LAYOUT from config
+        # We need to import BOM_LAYOUT first, but since replacement is block based:
+        from config.config import BOM_LAYOUT, DEFAULT_LABOR_RATE
+        print(f"DEBUG: BOM_LAYOUT length: {len(BOM_LAYOUT)}")
+
+        for item in BOM_LAYOUT:
+             # Labels and Entries
+             tk.Label(frame_bom, text=f"{item['label']}:").grid(row=current_row, column=0, sticky="w")
+             
+             ent_name = tk.Entry(frame_bom, width=15)
+             ent_name.grid(row=current_row, column=1, padx=2)
+             # Map: self.entry_{id}_name
+             setattr(self, f"entry_{item['id']}_name", ent_name)
+             bind_list.append(ent_name)
+
+             # Qty/Weight Entry
+             if item['type'] in ['weight', 'weight_unit']:
+                 lbl = "Weight (g):"
+                 # Special handling for legacy db_prefix if needed (e.g. frag -> fragrance)
+                 mapped_attr = f"entry_{item.get('db_prefix', item['id'])}_g" 
+             elif item['type'] in ['unit', 'basic']:
+                 lbl = "Qty:"
+                 mapped_attr = f"entry_{item['id']}_qty"
+             
+             if item['type'] != 'basic': 
+                 tk.Label(frame_bom, text=lbl).grid(row=current_row, column=2, sticky="w")
+                 ent_qty = tk.Entry(frame_bom, width=6)
+                 ent_qty.grid(row=current_row, column=3, padx=2)
+                 setattr(self, mapped_attr, ent_qty)
+                 if item['type'] == 'unit': ent_qty.insert(0, "1")
+                 bind_list.append(ent_qty)
+             
+             # Rate / Cost Entry
+             tk.Label(frame_bom, text=item['rate_label']).grid(row=current_row, column=4, sticky="w")
+             ent_rate = tk.Entry(frame_bom, width=8)
+             ent_rate.grid(row=current_row, column=5, padx=2, sticky="w")
+             
+             # Naming: entry_{id}_rate usually.
+             rate_attr = f"entry_{item['id']}_rate"
+             if item['id'] == 'box': rate_attr = "entry_box" # Backward compat
+             if item['id'] == 'wrap': rate_attr = "entry_wrap" # Backward compat
+             
+             setattr(self, rate_attr, ent_rate)
+             bind_list.append(ent_rate)
+             
+             current_row += 1
+
+        # Labor (Fixed for now as it's not strictly Material in config yet)
+        tk.Label(frame_bom, text="Labor Time (min):").grid(row=current_row, column=0, sticky="w")
         self.entry_labor_time = tk.Entry(frame_bom, width=6)
-        self.entry_labor_time.grid(row=7, column=1, padx=2, sticky="w")
+        self.entry_labor_time.grid(row=current_row, column=1, padx=2, sticky="w")
         
-        tk.Label(frame_bom, text="Labor Rate ($/h):").grid(row=7, column=2, sticky="w")
+        tk.Label(frame_bom, text="Labor Rate ($/h):").grid(row=current_row, column=2, sticky="w")
         self.entry_labor_rate = tk.Entry(frame_bom, width=6)
-        self.entry_labor_rate.grid(row=7, column=3, padx=2, sticky="w")
+        self.entry_labor_rate.grid(row=current_row, column=3, padx=2, sticky="w")
         self.entry_labor_rate.insert(0, str(DEFAULT_LABOR_RATE))
+        bind_list.append(self.entry_labor_time)
+        bind_list.append(self.entry_labor_rate)
         
+        current_row += 1
+        tk.Label(frame_bom, text="Biz Card ($):").grid(row=current_row, column=0, sticky="w")
+        self.entry_biz_card = tk.Entry(frame_bom, width=6)
+        self.entry_biz_card.grid(row=current_row, column=1, padx=2, sticky="w")
+        bind_list.append(self.entry_biz_card)
+
         # Bindings
-        for entry in [self.entry_wax_name, self.entry_wax_g, self.entry_wax_rate,
-                      self.entry_frag_name, self.entry_fragrance_g, self.entry_frag_rate,
-                      self.entry_wick_name, self.entry_wick_qty, self.entry_wick_rate,
-                      self.entry_container_name, self.entry_container_qty, self.entry_container_rate,
-                      self.entry_second_container_name, self.entry_second_container_g, self.entry_second_container_rate,
-                      self.entry_box_name, self.entry_box, self.entry_box_qty,
-                      self.entry_wrap, self.entry_biz_card,
-                      self.entry_labor_time, self.entry_labor_rate]:
-            entry.bind("<KeyRelease>", self.calculate_cogs)
+        for entry in bind_list:
+             entry.bind("<KeyRelease>", self.calculate_cogs)
         
         # Add COGS Table here within BOM tab
         self.create_cogs_table(parent) 
@@ -288,63 +247,57 @@ class ProductForm(tk.Frame):
                 return default
 
         # 1. Wax
-        wax_g = get_val(self.entry_wax_g)
-        wax_rate = get_val(self.entry_wax_rate)
-        if wax_g > 0:
-            # Rate is now $/kg, so divide by 1000 to get per gram cost
-            cost = wax_g * (wax_rate / 1000)
-            self.cogs_tree.insert("", "end", values=("Wax", f"{wax_g} g", f"${wax_rate}/kg", f"${cost:.2f}"))
-            total_cost += cost
-
-        # 2. Fragrance
-        frag_g = get_val(self.entry_fragrance_g)
-        frag_rate = get_val(self.entry_frag_rate)
-        if frag_g > 0:
-            # Rate is now $/kg
-            cost = frag_g * (frag_rate / 1000)
-            self.cogs_tree.insert("", "end", values=("Fragrance", f"{frag_g} g", f"${frag_rate}/kg", f"${cost:.2f}"))
-            total_cost += cost
-
-        # 3. Wick
-        wick_qty = get_val(self.entry_wick_qty, is_float=False, default=1)
-        wick_rate = get_val(self.entry_wick_rate)
-        if wick_rate > 0:
-             cost = wick_qty * wick_rate
-             self.cogs_tree.insert("", "end", values=("Wick", f"{wick_qty} units", f"${wick_rate}", f"${cost:.2f}"))
-             total_cost += cost
+        # Generic calculation based on BOM_LAYOUT
+        from config.config import BOM_LAYOUT
         
-        # 4. Container 1 (Unit Based)
-        cont1_qty = get_val(self.entry_container_qty, is_float=False, default=1)
-        cont1_rate = get_val(self.entry_container_rate)
-        if cont1_rate > 0:
-             cost = cont1_qty * cont1_rate
-             self.cogs_tree.insert("", "end", values=("Container 1", f"{cont1_qty} units", f"${cont1_rate}/unit", f"${cost:.2f}"))
-             total_cost += cost
-
-        # 5. Container 2 (Weight Based - Gypsum)
-        cont2_g = get_val(self.entry_second_container_g)
-        cont2_rate = get_val(self.entry_second_container_rate)
-        if cont2_g > 0:
-             # Rate is $/kg, so divide by 1000
-             cost = cont2_g * (cont2_rate / 1000)
-             self.cogs_tree.insert("", "end", values=("Container 2", f"{cont2_g} g", f"${cont2_rate}/kg", f"${cost:.2f}"))
-             total_cost += cost
-             
-        # 6. Box
-
-        # 5. Box
-        box_qty = get_val(self.entry_box_qty, is_float=False, default=1)
-        box_price = get_val(self.entry_box)
-        if box_price > 0:
-             cost = box_qty * box_price
-             self.cogs_tree.insert("", "end", values=("Box", f"{box_qty} units", f"${box_price}", f"${cost:.2f}"))
-             total_cost += cost
-
-        # Wrap
-        wrap_price = get_val(self.entry_wrap)
-        if wrap_price > 0:
-            self.cogs_tree.insert("", "end", values=("Wrap", "1 unit", f"${wrap_price}", f"${wrap_price:.2f}"))
-            total_cost += wrap_price
+        for item in BOM_LAYOUT:
+            item_id = item['id']
+            item_type = item['type']
+            label = item['label']
+            
+            # Rate
+            rate_attr = f"entry_{item_id}_rate"
+            if item_id == 'box': rate_attr = "entry_box"
+            if item_id == 'wrap': rate_attr = "entry_wrap"
+            
+            rate_entry = getattr(self, rate_attr, None)
+            rate = get_val(rate_entry) if rate_entry else 0.0
+            
+            cost = 0.0
+            display_qty = ""
+            display_rate = f"${rate}"
+            
+            if item_type in ['weight', 'weight_unit']:
+                # Weight based
+                mapped_g_attr = f"entry_{item.get('db_prefix', item_id)}_g"
+                g_entry = getattr(self, mapped_g_attr, None)
+                weight_g = get_val(g_entry) if g_entry else 0.0
+                
+                if weight_g > 0:
+                    # Rate is $/kg
+                    cost = weight_g * (rate / 1000)
+                    display_qty = f"{weight_g} g"
+                    display_rate = f"${rate}/kg"
+                    
+            elif item_type in ['unit', 'basic']: # 'basic' treated like unit if it has quantity?
+                # Unit based
+                qty_attr = f"entry_{item_id}_qty"
+                qty_entry = getattr(self, qty_attr, None)
+                # Box default 1, others 1
+                qty = get_val(qty_entry, is_float=False, default=1) if qty_entry else 1
+                
+                if item_type == 'basic' and not qty_entry:
+                    # Pure cost item (Wrap)
+                    qty = 1
+                    
+                if rate > 0:
+                    cost = qty * rate
+                    display_qty = f"{qty} units" if ((item_type == 'unit') or (item_type=='basic' and qty_entry)) else "1 unit"
+                    display_rate = f"${rate}"
+            
+            if cost > 0:
+                self.cogs_tree.insert("", "end", values=(label, display_qty, display_rate, f"${cost:.2f}"))
+                total_cost += cost
 
         # Biz Card
         biz = get_val(self.entry_biz_card)
@@ -427,20 +380,22 @@ class ProductForm(tk.Frame):
 
             self.entry_rec_price.config(state="readonly")
             
-        # Calculate Total Weight = Wax + Fragrance + Container 2 (Gypsum)
+        # Calculate Total Weight = Sum of all 'weight' or 'weight_unit' items
         # Only if we have valid values
         calc_weight = 0.0
-        if wax_g > 0: calc_weight += wax_g
-        if frag_g > 0: calc_weight += frag_g
         
-        # Add container weight if gypsum/weight-based
-        cont2_g = get_val(self.entry_second_container_g)
-        if cont2_g > 0:
-            calc_weight += cont2_g
+        # Iterate BOM again to sum weights? Or we could have done it in previous loop.
+        # Let's iterate again for clarity or just grab filters.
+        for item in BOM_LAYOUT:
+            if item['type'] in ['weight', 'weight_unit']:
+                # Retrieve the weight value
+                mapped_g_attr = f"entry_{item.get('db_prefix', item['id'])}_g"
+                g_entry = getattr(self, mapped_g_attr, None)
+                w_val = get_val(g_entry) if g_entry else 0.0
+                if w_val > 0:
+                     calc_weight += w_val
         
         # Update Weight Entry if calculated weight > 0
-        # Check if user manually edited it? 
-        # Strategy: Always update if calculated > 0.
         if calc_weight > 0:
             self.entry_weight.delete(0, "end")
             self.entry_weight.insert(0, f"{calc_weight:.2f}")

@@ -123,5 +123,53 @@
         "markup_max": 5.0,
         "markup_min": 1.5,
         "decay_factor": 15.0
+    },
+    "manufacturing": {
+        "bom_layout": [
+            {
+                "id": "wax",
+                "label": "Wax",
+                "type": "weight",
+                "rate_label": "$/kg"
+            },
+            {
+                "id": "frag",
+                "label": "Fragrance",
+                "type": "weight",
+                "rate_label": "$/kg",
+                "db_prefix": "fragrance"
+            },
+            {
+                "id": "wick",
+                "label": "Wick",
+                "type": "unit",
+                "rate_label": "$/unit"
+            },
+            {
+                "id": "container",
+                "label": "Container 1",
+                "type": "unit",
+                "rate_label": "$/unit"
+            },
+            {
+                "id": "second_container",
+                "label": "Container 2",
+                "type": "weight_unit",
+                "rate_label": "$/unit",
+                "desc": "Secondary vessel"
+            },
+            {
+                "id": "box",
+                "label": "Box",
+                "type": "unit",
+                "rate_label": "Price"
+            },
+            {
+                "id": "wrap",
+                "label": "Wrapping",
+                "type": "basic",
+                "rate_label": "Price"
+            }
+        ]
     }
 }
