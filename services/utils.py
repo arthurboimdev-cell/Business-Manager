@@ -82,3 +82,32 @@ class TransactionUtils:
         text = re.sub(r"\s+", " ", text)
 
         return text.strip()
+
+    @staticmethod
+    def calculate_monthly_breakdown(transactions, year):
+        """
+        Groups transactions by month for a specific year.
+        Returns a dict: {1: {'income': 0, 'expense': 0}, ...}
+        """
+        breakdown = {m: {'income': 0.0, 'expense': 0.0} for m in range(1, 13)}
+        
+        for t in transactions:
+            # Date format expected: YYYY-MM-DD
+            date_str = str(t['transaction_date'])
+            if not date_str.startswith(str(year)):
+                continue
+                
+            try:
+                # Extract month (YYYY-MM-DD) -> index 5:7
+                month = int(date_str.split('-')[1])
+                amount = float(t['total'])
+                t_type = t['transaction_type']
+                
+                if t_type == 'income':
+                    breakdown[month]['income'] += amount
+                else:
+                    breakdown[month]['expense'] += amount
+            except (ValueError, IndexError):
+                continue
+                
+        return breakdown

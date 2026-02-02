@@ -3,6 +3,7 @@ import tkinter.font
 from tkinter import ttk, messagebox, filedialog
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from datetime import datetime
 from config.config import TREE_COLUMNS, TRANSACTION_TYPES, BUTTON_ADD, BUTTON_CLEAR, UI_LABELS, UI_BUTTONS
 from gui.charts import AnalyticsFrame
 from gui.tabs.shipping_tab import ShippingTab
@@ -20,6 +21,10 @@ class InputFrame(tb.Frame):
 
         self.create_field(UI_LABELS["date"], 0, "date")
         self.create_field(UI_LABELS["date"], 0, "date")
+        
+        # Set today's date as default
+        today = datetime.now().strftime("%Y-%m-%d")
+        self.entry_date.insert(0, today)
         
         # Description (now with Product Link)
         tb.Label(self, text=UI_LABELS["description"]).grid(row=1, column=0, sticky='w', pady=5)
@@ -59,6 +64,7 @@ class InputFrame(tb.Frame):
         self.btn_add.pack(side='left', padx=5)
 
         tb.Button(btn_frame, text=BUTTON_CLEAR, bootstyle="secondary", command=self.clear_fields).pack(side='left', padx=5)
+
 
     def update_products(self, products):
         self.products = products
@@ -127,6 +133,10 @@ class InputFrame(tb.Frame):
 
     def clear_fields(self):
         self.entry_date.delete(0, tk.END)
+        # Restore today's date as default
+        today = datetime.now().strftime("%Y-%m-%d")
+        self.entry_date.insert(0, today)
+        
         self.entry_desc.delete(0, tk.END)
         self.entry_qty.delete(0, tk.END)
         self.entry_total.delete(0, tk.END)
@@ -137,6 +147,7 @@ class InputFrame(tb.Frame):
         self.type_var.set(TRANSACTION_TYPES[0])
         self.current_edit_id = None
         self.btn_add.configure(text=BUTTON_ADD, bootstyle="success")
+
 
     def load_for_editing(self, t_id, data):
         self.clear_fields()

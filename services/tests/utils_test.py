@@ -94,3 +94,76 @@ def test_filter_by_quarter_no_match():
 )
 def test_normalize_text(input_text, expected):
     assert TransactionUtils.normalize_text(input_text) == expected
+
+# ---------------- Test calculate_monthly_breakdown ----------------
+def test_calculate_monthly_breakdown_2025():
+    """Test monthly breakdown for 2025 with mixed transactions"""
+    breakdown = TransactionUtils.calculate_monthly_breakdown(SAMPLE_TRANSACTIONS, 2025)
+    
+    # Should have 12 months
+    assert len(breakdown) == 12
+    
+    # January 2025: 1 income (250.0) + 1 expense (212.5)
+    assert breakdown[1]['income'] == 250.0
+    assert breakdown[1]['expense'] == 212.5
+    
+    # February 2025: 1 income (150.0)
+    assert breakdown[2]['income'] == 150.0
+    assert breakdown[2]['expense'] == 0.0
+    
+    # March 2025: no transactions
+    assert breakdown[3]['income'] == 0.0
+    assert breakdown[3]['expense'] == 0.0
+    
+    # April 2025: 1 expense (70.0)
+    assert breakdown[4]['income'] == 0.0
+    assert breakdown[4]['expense'] == 70.0
+    
+    # May-December 2025: all zeros
+    for month in range(5, 13):
+        assert breakdown[month]['income'] == 0.0
+        assert breakdown[month]['expense'] == 0.0
+
+def test_calculate_monthly_breakdown_2024():
+    """Test monthly breakdown for 2024"""
+    breakdown = TransactionUtils.calculate_monthly_breakdown(SAMPLE_TRANSACTIONS, 2024)
+    
+    # December 2024: 1 income (60.0)
+    assert breakdown[12]['income'] == 60.0
+    assert breakdown[12]['expense'] == 0.0
+    
+    # All other months should be zero
+    for month in range(1, 12):
+        assert breakdown[month]['income'] == 0.0
+        assert breakdown[month]['expense'] == 0.0
+
+def test_calculate_monthly_breakdown_no_transactions():
+    """Test monthly breakdown with empty transaction list"""
+    breakdown = TransactionUtils.calculate_monthly_breakdown([], 2025)
+    
+    # All months should have zero income and expense
+    for month in range(1, 13):
+        assert breakdown[month]['income'] == 0.0
+        assert breakdown[month]['expense'] == 0.0
+
+def test_calculate_monthly_breakdown_wrong_year():
+    """Test monthly breakdown for a year with no data"""
+    breakdown = TransactionUtils.calculate_monthly_breakdown(SAMPLE_TRANSACTIONS, 2030)
+    
+    # All months should have zero income and expense
+    for month in range(1, 13):
+        assert breakdown[month]['income'] == 0.0
+        assert breakdown[month]['expense'] == 0.0
+
+def test_calculate_monthly_breakdown_multiple_same_month():
+    """Test monthly breakdown with multiple transactions in same month"""
+    transactions = [
+        {"transaction_date": "2025-03-01", "transaction_type": "income", "total": 100.0},
+        {"transaction_date": "2025-03-15", "transaction_type": "income", "total": 200.0},
+        {"transaction_date": "2025-03-20", "transaction_type": "expense", "total": 50.0},
+    ]
+    breakdown = TransactionUtils.calculate_monthly_breakdown(transactions, 2025)
+    
+    # March should have summed values
+    assert breakdown[3]['income'] == 300.0  # 100 + 200
+    assert breakdown[3]['expense'] == 50.0

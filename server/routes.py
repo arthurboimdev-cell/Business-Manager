@@ -306,6 +306,33 @@ def get_products():
         logger.error(f"Error getting products: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/products/{p_id}")
+def get_product(p_id: int):
+    try:
+        product = product_ops.get_product(p_id, table=PRODUCTS_TABLE_NAME)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+            
+        # Handle Base64 Image
+        if product.get('image'):
+            if isinstance(product['image'], bytes):
+                product['image'] = base64.b64encode(product['image']).decode('utf-8')
+        
+        # Parse JSON fields
+        import json
+        for key in ['amazon_data', 'etsy_data', 'common_data']:
+            if product.get(key) and isinstance(product[key], str):
+                try:
+                    product[key] = json.loads(product[key])
+                except: pass
+                
+        return product
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting product {p_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/products")
 def add_product(item: ProductCreate):
     try:
