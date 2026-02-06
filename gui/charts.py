@@ -29,14 +29,17 @@ class AnalyticsFrame(tb.Frame):
 
         # --- Chart ---
         # A single figure for the Monthly Chart
-        self.fig = Figure(figsize=(8, 5), dpi=100)
+        self.fig = Figure(figsize=(10, 6), dpi=100)
         self.ax = self.fig.add_subplot(111)
         
-        # Adjust layout to make room for labels
-        self.fig.subplots_adjust(bottom=0.15)
+        # Use tight_layout for better automatic spacing
+        self.fig.tight_layout(pad=3.0)
 
         self.canvas = FigureCanvasTkAgg(self.fig, self)
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Bind to configure event to handle window resizing
+        self.bind("<Configure>", self._on_resize)
 
     def on_year_change(self, event):
         self.refresh_charts(self.transactions, keep_year=True)
@@ -110,3 +113,11 @@ class AnalyticsFrame(tb.Frame):
         self.ax.yaxis.grid(True, linestyle='--', alpha=0.7)
 
         self.canvas.draw()
+    
+    def _on_resize(self, event):
+        """Handle window resize events to ensure chart scales properly"""
+        try:
+            self.fig.tight_layout(pad=3.0)
+            self.canvas.draw_idle()
+        except:
+            pass  # Ignore errors during resize
