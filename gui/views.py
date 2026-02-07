@@ -131,11 +131,15 @@ class InputFrame(tb.Frame):
         else:
             self.on_add(data)
 
-    def clear_fields(self):
-        self.entry_date.delete(0, tk.END)
-        # Restore today's date as default
-        today = datetime.now().strftime("%Y-%m-%d")
-        self.entry_date.insert(0, today)
+    def clear_fields(self, skip_date=False):
+        if not skip_date:
+            self.entry_date.delete(0, tk.END)
+            # Restore today's date as default
+            today = datetime.now().strftime("%Y-%m-%d")
+            self.entry_date.insert(0, today)
+        else:
+            # When editing, we'll clear the date field but not insert today's date
+            self.entry_date.delete(0, tk.END)
         
         self.entry_desc.delete(0, tk.END)
         self.entry_qty.delete(0, tk.END)
@@ -150,7 +154,8 @@ class InputFrame(tb.Frame):
 
 
     def load_for_editing(self, t_id, data):
-        self.clear_fields()
+        # Clear fields but skip resetting the date to today
+        self.clear_fields(skip_date=True)
         self.current_edit_id = t_id
         self.entry_date.insert(0, data['transaction_date'])
         self.entry_desc.insert(0, data['description'])
