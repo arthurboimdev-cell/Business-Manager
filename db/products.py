@@ -126,6 +126,36 @@ def delete_product(product_id, table=PRODUCTS_TABLE_NAME):
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    finally:
+        cursor.close()
+        conn.close()
+
+def product_exists(title, sku=None, table=PRODUCTS_TABLE_NAME):
+    """
+    Check if a product exists by title (case-insensitive) or SKU.
+    Returns True if exists, False otherwise.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Check SKU first if provided
+        if sku:
+            cursor.execute(f"SELECT COUNT(*) FROM {table} WHERE sku = %s", (sku,))
+            if cursor.fetchone()[0] > 0:
+                return True
+        
+        # Check Title (case-insensitive)
+        cursor.execute(f"SELECT COUNT(*) FROM {table} WHERE LOWER(title) = LOWER(%s)", (title,))
+        if cursor.fetchone()[0] > 0:
+            return True
+            
+        return False
+    except mysql.connector.Error as err:
+        print(f"Error checking product existence: {err}")
+        return False
     finally:
         cursor.close()
         conn.close()
