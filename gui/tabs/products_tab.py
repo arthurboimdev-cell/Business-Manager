@@ -1,10 +1,13 @@
 from client.api_client import APIClient
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from config.config import DEFAULT_LABOR_RATE
+import threading
 
 from gui.forms.product_form import ProductForm
 from gui.dialogs.create_product_dialog import CreateProductDialog
+from services.etsy_import import import_etsy_products
+
 
 class ProductsTab(tk.Frame):
     def __init__(self, parent):
@@ -40,6 +43,8 @@ class ProductsTab(tk.Frame):
         tk.Button(btn_frame, text="Create Product", command=self.open_create_dialog, bg="#4CAF50", fg="white").pack(side="left", padx=2)
         tk.Button(btn_frame, text="Update Product", command=self.update_product, bg="#FF9800", fg="white").pack(side="left", padx=2)
         tk.Button(btn_frame, text="Clear", command=self.form.clear).pack(side="left", padx=2)
+        tk.Button(btn_frame, text="Import from Etsy CSV", command=self.import_from_etsy, bg="#2196F3", fg="white").pack(side="left", padx=2)
+
 
     def open_create_dialog(self):
         # Open the popup dialog
@@ -138,16 +143,36 @@ class ProductsTab(tk.Frame):
 
     def delete_product_gui(self):
         selected = self.tree.selection()
-        if not selected: return
+        if not selected:
+            messagebox.showwarning("Warning", "No products selected to delete")
+            return
         
-        if messagebox.askyesno("Confirm", "Delete selected product?"):
-            try:
-                p_id = self.tree.item(selected[0])['values'][0]
+        # Get count of selected items
+        count = len(selected)
+        item_text = "product" if count == 1 else "products"
+        
+        # Confirm deletion
+        if not messagebox.askyesno("Confirm Delete", f"Delete {count} {item_text}?"):
+            return
+        
+        try:
+            # Delete all selected products
+            for item in selected:
+                p_id = self.tree.item(item)['values'][0]
                 APIClient.delete_product(p_id)
-                self.refresh_product_list()
-                self.form.clear()
-            except Exception as e:
-                messagebox.showerror("Error", str(e))
+            
+            # Show success message
+            messagebox.showinfo("Success", f"Deleted {count} {item_text}")
+            
+            # Refresh list in background
+            self.after(100, self.refresh_product_list)
+            
+            # Clear form
+            self.form.clear()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to delete products: {e}")
+
 
     def search_by_id(self, event=None):
         search_term = self.entry_search.get().strip().lower()
@@ -179,6 +204,83 @@ class ProductsTab(tk.Frame):
             self.on_product_select(None)
         else:
             messagebox.showinfo("Not Found", f"Product '{search_term}' not found.")
+
+    def import_from_etsy(self):
+        """Import products from Etsy CSV file with progress dialog."""
+        # Open file dialog
+        csv_path = filedialog.askopenfilename(
+            title="Select Etsy CSV File",
+            filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
+        )
+        
+        if not csv_path:
+            return  # User cancelled
+        
+        # Create progress dialog
+        progress_window = tk.Toplevel(self)
+        progress_window.title("Importing Products")
+        progress_window.geometry("400x150")
+        progress_window.transient(self)
+        progress_window.grab_set()
+        
+        # Center the window
+        progress_window.update_idletasks()
+        x = (progress_window.winfo_screenwidth() // 2) - (progress_window.winfo_width() // 2)
+        y = (progress_window.winfo_screenheight() // 2) - (progress_window.winfo_height() // 2)
+        progress_window.geometry(f"+{x}+{y}")
+        
+        # Progress label
+        status_label = tk.Label(progress_window, text="Starting import...", wraplength=380)
+        status_label.pack(pady=20)
+        
+        # Progress bar
+        progress_bar = ttk.Progressbar(progress_window, mode='determinate', length=350)
+        progress_bar.pack(pady=10)
+        
+        # Result container
+        result = {'stats': None, 'error': None}
+        
+        def progress_callback(current, total, message):
+            """Update progress bar and status label."""
+            progress_bar['value'] = (current / total) * 100
+            status_label.config(text=message)
+            progress_window.update()
+        
+        def do_import():
+            """Run import in background thread."""
+            try:
+                stats = import_etsy_products(csv_path, progress_callback)
+                result['stats'] = stats
+            except Exception as e:
+                result['error'] = str(e)
+        
+        # Run import in thread
+        import_thread = threading.Thread(target=do_import, daemon=True)
+        import_thread.start()
+        
+        # Wait for thread to complete
+        while import_thread.is_alive():
+            progress_window.update()
+            self.after(100)
+        
+        # Close progress window
+        progress_window.destroy()
+        
+        # Show results
+        if result['error']:
+            messagebox.showerror("Import Error", f"Failed to import products:\n{result['error']}")
+        elif result['stats']:
+            stats = result['stats']
+            message = (
+                f"Import Complete!\n\n"
+                f"✓ Imported: {stats['imported']} products\n"
+                f"⊘ Skipped (duplicates): {stats['skipped_duplicates']}\n"
+                f"✗ Skipped (errors): {stats['skipped_errors']}"
+            )
+            messagebox.showinfo("Import Results", message)
+            
+            # Refresh product list
+            self.refresh_product_list()
 
     @staticmethod
     def calculate_product_cost_static(data):
