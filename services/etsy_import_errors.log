@@ -1,0 +1,176 @@
+
+[2026-02-06 21:50:10.635536] Attempting to create product: Test Rose Candle
+
+[2026-02-06 21:50:10.635886] Successfully created product ID: 123
+
+[2026-02-06 21:50:10.636277] Processing 1 additional images for product 123
+
+[2026-02-06 21:50:10.636701] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-06 21:50:10.637187] Added image 1 (10 bytes)
+
+[2026-02-06 21:50:11.307663] Attempting to create product: Test Rose Candle
+
+[2026-02-06 21:50:11.308125] DATABASE ERROR for 'Test Rose Candle': Database error
+
+[2026-02-06 21:50:11.310322] Traceback: Traceback (most recent call last):
+  File "C:\Users\arthu\PycharmProjects\AurumCandles\services\etsy_import.py", line 215, in import_etsy_products
+    product_id = create_product(product_data)
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Database error
+
+
+[2026-02-06 21:50:11.311009] IMPORT ERROR for 'Test Rose Candle': Database error
+
+[2026-02-06 21:50:11.311964] Full traceback: Traceback (most recent call last):
+  File "C:\Users\arthu\PycharmProjects\AurumCandles\services\etsy_import.py", line 215, in import_etsy_products
+    product_id = create_product(product_data)
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Database error
+
+
+[2026-02-06 21:57:06.728876] Attempting to create product: Test Rose Candle
+
+[2026-02-06 21:57:06.729560] Successfully created product ID: 123
+
+[2026-02-06 21:57:06.729884] Processing 1 additional images for product 123
+
+[2026-02-06 21:57:06.730284] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-06 21:57:06.730823] Added image 1 (10 bytes)
+
+[2026-02-06 21:57:07.400740] Attempting to create product: Test Rose Candle
+
+[2026-02-06 21:57:07.401306] DATABASE ERROR for 'Test Rose Candle': Database error
+
+[2026-02-06 21:57:07.403588] Traceback: Traceback (most recent call last):
+  File "C:\Users\arthu\PycharmProjects\AurumCandles\services\etsy_import.py", line 215, in import_etsy_products
+    product_id = create_product(product_data)
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Database error
+
+
+[2026-02-06 21:57:07.404112] IMPORT ERROR for 'Test Rose Candle': Database error
+
+[2026-02-06 21:57:07.405178] Full traceback: Traceback (most recent call last):
+  File "C:\Users\arthu\PycharmProjects\AurumCandles\services\etsy_import.py", line 215, in import_etsy_products
+    product_id = create_product(product_data)
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Database error
+
+
+[2026-02-06 22:11:38.854559] Attempting to create product: Test Rose Candle
+
+[2026-02-06 22:11:38.855341] Successfully created product ID: 123
+
+[2026-02-06 22:11:38.855727] Processing 1 additional images for product 123
+
+[2026-02-06 22:11:38.856194] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-06 22:11:38.856838] Added image 1 (10 bytes)
+
+[2026-02-06 22:11:39.955760] Attempting to create product: Test Rose Candle
+
+[2026-02-06 22:11:39.956373] DATABASE ERROR for 'Test Rose Candle': Database error
+
+[2026-02-06 22:11:39.958712] Traceback: Traceback (most recent call last):
+  File "C:\Users\arthu\PycharmProjects\AurumCandles\services\etsy_import.py", line 215, in import_etsy_products
+    product_id = create_product(product_data)
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Database error
+
+
+[2026-02-06 22:11:39.959187] IMPORT ERROR for 'Test Rose Candle': Database error
+
+[2026-02-06 22:11:39.973912] Full traceback: Traceback (most recent call last):
+  File "C:\Users\arthu\PycharmProjects\AurumCandles\services\etsy_import.py", line 215, in import_etsy_products
+    product_id = create_product(product_data)
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Database error
+
+
+[2026-02-06 22:19:43.263853] Attempting to create product: Test Rose Candle
+
+[2026-02-06 22:19:43.264690] Successfully created product ID: 123
+
+[2026-02-06 22:19:43.265003] Processing 1 additional images for product 123
+
+[2026-02-06 22:19:43.265364] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-06 22:19:43.265896] Added image 1 (10 bytes)
+
+[2026-02-06 22:19:44.138078] Attempting to create product: Test Rose Candle
+
+[2026-02-06 22:19:44.138658] DATABASE ERROR for 'Test Rose Candle': Database error
+
+[2026-02-06 22:19:44.140905] Traceback: Traceback (most recent call last):
+  File "C:\Users\arthu\PycharmProjects\AurumCandles\services\etsy_import.py", line 215, in import_etsy_products
+    product_id = create_product(product_data)
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Database error
+
+
+[2026-02-06 22:19:44.141223] IMPORT ERROR for 'Test Rose Candle': Database error
+
+[2026-02-06 22:19:44.142261] Full traceback: Traceback (most recent call last):
+  File "C:\Users\arthu\PycharmProjects\AurumCandles\services\etsy_import.py", line 215, in import_etsy_products
+    product_id = create_product(product_data)
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1169, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1173, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\arthu\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1228, in _execute_mock_call
+    raise effect
+Exception: Database error
+

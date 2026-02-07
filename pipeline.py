@@ -47,7 +47,7 @@ def build_executable():
     os.makedirs(dist_config, exist_ok=True)
     
     # Copy specific files
-    for f in ["config.json", "local.env"]:
+    for f in ["config.json", "local.env", "features.json"]:
         src = os.path.join("config", f)
         if os.path.exists(src):
             shutil.copy2(src, os.path.join(dist_config, f))
@@ -73,7 +73,7 @@ def copy_to_desktop():
     
     try:
         shutil.copy2(exe_source, exe_dest)
-        print(f"✓ Executable copied to Desktop: {exe_dest}")
+        print(f"[Done] Executable copied to Desktop: {exe_dest}")
     except Exception as e:
         print(f"Warning: Could not copy to desktop: {e}")
 
