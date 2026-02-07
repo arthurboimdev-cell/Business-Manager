@@ -82,16 +82,14 @@ class TestFeatureFlags(unittest.TestCase):
         self._test_features({
             "product_inventory": True,
             "materials_inventory": True,
-            "shipping": True,
             "marketplace": True
         })
 
     def _test_features(self, features):
         MainWindow = self.get_main_window_class()
         
-        # Patch ShippingTab and MarketplaceTab to avoid them trying to do things
-        with patch('gui.views.ShippingTab') as MockShippingTab, \
-             patch('gui.views.MarketplaceTab') as MockMarketplaceTab:
+        # Patch MarketplaceTab to avoid it trying to do things
+        with patch('gui.views.MarketplaceTab') as MockMarketplaceTab:
              window = MainWindow("Test", features=features)
              
              if features.get("product_inventory"):
@@ -103,11 +101,6 @@ class TestFeatureFlags(unittest.TestCase):
                  self.assertTrue(hasattr(window, 'tab_materials'))
              else:
                  self.assertFalse(hasattr(window, 'tab_materials'))
-                 
-             if features.get("shipping"):
-                 self.assertTrue(hasattr(window, 'tab_shipping'))
-             else:
-                 self.assertFalse(hasattr(window, 'tab_shipping'))
 
              if features.get("marketplace"):
                  self.assertTrue(hasattr(window, 'tab_marketplace'))
@@ -118,7 +111,6 @@ class TestFeatureFlags(unittest.TestCase):
         self._test_features({
             "product_inventory": False,
             "materials_inventory": False,
-            "shipping": False,
             "marketplace": False
         })
         
@@ -126,7 +118,6 @@ class TestFeatureFlags(unittest.TestCase):
         self._test_features({
             "product_inventory": True,
             "materials_inventory": False,
-            "shipping": False,
             "marketplace": False
         })
 
@@ -134,14 +125,7 @@ class TestFeatureFlags(unittest.TestCase):
         self._test_features({
             "product_inventory": False,
             "materials_inventory": True,
-            "shipping": False,
             "marketplace": False
         })
         
-    def test_shipping_only(self):
-        self._test_features({
-            "product_inventory": False,
-            "materials_inventory": False,
-            "shipping": True,
-            "marketplace": False
-        })
+
