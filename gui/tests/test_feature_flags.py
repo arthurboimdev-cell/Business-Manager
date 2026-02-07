@@ -127,5 +127,3 @@ class TestFeatureFlags(unittest.TestCase):
             "materials_inventory": True,
             "marketplace": False
         })
-        
-

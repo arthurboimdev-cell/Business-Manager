@@ -8,18 +8,28 @@ Includes image downloading from URLs and duplicate detection.
 import csv
 import json
 import requests
-import logging
+import os
+import sys
+import traceback
 from io import BytesIO
 from typing import List, Dict, Optional, Callable
-from db.products import create_product, get_products, add_product_image
 
-# Setup logging to file for production debugging
-logging.basicConfig(
-    filename='etsy_import.log',
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Setup error logging for production debugging
+def log_error(msg):
+    """Log errors to a file in the executable directory"""
+    try:
+        if getattr(sys, 'frozen', False):
+            log_dir = os.path.dirname(sys.executable)
+        else:
+            log_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        log_file = os.path.join(log_dir, 'etsy_import_errors.log')
+        with open(log_file, 'a', encoding='utf-8') as f:
+            from datetime import datetime
+            f.write(f"\n[{datetime.now()}] {msg}\n")
+    except:
+        pass  # Silent fail if we can't write logs
+from db.products import create_product, get_products, add_product_image
 
 
 def parse_etsy_csv(csv_path: str) -> List[Dict]:
@@ -160,8 +170,6 @@ def import_etsy_products(
             'skipped_errors': number of products skipped due to errors
         }
     """
-    logger.info(f"Starting Etsy import from: {csv_path}")
-    
     stats = {
         'imported': 0,
         'skipped_duplicates': 0,
@@ -171,9 +179,7 @@ def import_etsy_products(
     # Parse CSV
     try:
         products = parse_etsy_csv(csv_path)
-        logger.info(f"Parsed {len(products)} products from CSV")
     except Exception as e:
-        logger.error(f"Error parsing CSV: {e}", exc_info=True)
         print(f"Error parsing CSV: {e}")
         return stats
     
@@ -183,15 +189,12 @@ def import_etsy_products(
         title = product_data['title']
         sku = product_data.get('sku')
         
-        logger.debug(f"Processing product {idx}/{total}: {title}")
-        
         # Update progress
         if progress_callback:
             progress_callback(idx, total, f"Processing: {title[:50]}...")
         
         # Check for duplicates
         if check_product_exists(title, sku):
-            logger.info(f"Skipping duplicate: {title}")
             print(f"Skipping duplicate: {title}")
             stats['skipped_duplicates'] += 1
             continue
@@ -199,43 +202,47 @@ def import_etsy_products(
         try:
             # Extract image URLs before creating product
             image_urls = product_data.pop('_image_urls', [])
-            logger.debug(f"Found {len(image_urls)} images for {title}")
             
             # Download first image for main product image field
             if image_urls:
-                logger.debug(f"Downloading main image from: {image_urls[0]}")
                 first_image = download_image_from_url(image_urls[0], title)
                 if first_image:
                     product_data['image'] = first_image
-                    logger.debug(f"Main image downloaded successfully ({len(first_image)} bytes)")
-                else:
-                    logger.warning(f"Failed to download main image for {title}")
             
             # Create product in database (now with main image)
-            logger.debug(f"Creating product in database: {title}")
-            product_id = create_product(product_data)
-            logger.info(f"Created product ID {product_id}: {title}")
+            try:
+                log_error(f"Attempting to create product: {title}")
+                product_id = create_product(product_data)
+                log_error(f"Successfully created product ID: {product_id}")
+            except Exception as db_error:
+                log_error(f"DATABASE ERROR for '{title}': {str(db_error)}")
+                log_error(f"Traceback: {traceback.format_exc()}")
+                raise  # Re-raise to be caught by outer try-catch
             
             # Download and add remaining images to product_images table
             # Start from index 1 (skip first image as it's already the main image)
+            log_error(f"Processing {len(image_urls) - 1} additional images for product {product_id}")
             for idx, image_url in enumerate(image_urls[1:], start=1):
-                logger.debug(f"Downloading additional image {idx} from: {image_url}")
+                log_error(f"Downloading image {idx}: {image_url[:80]}...")
                 image_data = download_image_from_url(image_url, title)
                 if image_data:
-                    add_product_image(product_id, image_data, display_order=idx)
-                    logger.debug(f"Added image {idx} ({len(image_data)} bytes)")
+                    try:
+                        add_product_image(product_id, image_data, display_order=idx)
+                        log_error(f"Added image {idx} ({len(image_data)} bytes)")
+                    except Exception as img_err:
+                        log_error(f"ERROR adding image {idx}: {str(img_err)}")
                 else:
-                    logger.warning(f"Skipped image {idx + 1} for '{title}'")
+                    log_error(f"Failed to download image {idx}")
                     print(f"Skipped image {idx + 1} for '{title}'")
             
             stats['imported'] += 1
             print(f"Imported: {title}")
             
         except Exception as e:
-            logger.error(f"Error importing '{title}': {e}", exc_info=True)
+            log_error(f"IMPORT ERROR for '{title}': {str(e)}")
+            log_error(f"Full traceback: {traceback.format_exc()}")
             print(f"Error importing '{title}': {e}")
             stats['skipped_errors'] += 1
             continue
     
-    logger.info(f"Import complete. Stats: {stats}")
     return stats

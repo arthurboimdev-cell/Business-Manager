@@ -115,10 +115,7 @@ class ProductsTab(tk.Frame):
             self.tree.delete(item)
         
         try:
-            print("Fetching products from API...")
             self.products = APIClient.get_products()
-            print(f"Received {len(self.products)} products from API")
-            
             for product in self.products:
                 total_cost = self.calculate_product_cost_static(product)
                 
@@ -130,11 +127,8 @@ class ProductsTab(tk.Frame):
                     f"${total_cost:.2f}",
                     f"${(product.get('selling_price') or 0):.2f}"
                 ))
-            print(f"Displayed {len(self.products)} products in tree")
         except Exception as e:
             print(f"Error refreshing list: {e}")
-            import traceback
-            traceback.print_exc()
 
     def on_product_select(self, event):
         selected = self.tree.selection()
@@ -284,15 +278,9 @@ class ProductsTab(tk.Frame):
                 f"✗ Skipped (errors): {stats['skipped_errors']}"
             )
             messagebox.showinfo("Import Results", message)
-        
-        # Force immediate refresh of product list
-        try:
+            
+            # Refresh product list
             self.refresh_product_list()
-            print(f"Products refreshed: {len(self.products)} products in list")
-        except Exception as refresh_error:
-            print(f"Error refreshing after import: {refresh_error}")
-            messagebox.showwarning("Refresh Issue", f"Products imported successfully but list refresh failed. Please click 'Refresh List' manually.\n\nError: {refresh_error}")
-
 
     @staticmethod
     def calculate_product_cost_static(data):
