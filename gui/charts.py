@@ -98,6 +98,15 @@ class AnalyticsFrame(tb.Frame):
         self.ax.bar(x_income, incomes, width, label='Income', color='#2ecc71')
         self.ax.bar(x_expense, expenses, width, label='Expense', color='#e74c3c')
 
+        # Add Value Labels
+        for i, v in enumerate(incomes):
+            if v > 0:
+                self.ax.text(x_income[i], v, f"{int(v)}", ha='center', va='bottom', fontsize=8)
+        
+        for i, v in enumerate(expenses):
+            if v > 0:
+                self.ax.text(x_expense[i], v, f"{int(v)}", ha='center', va='bottom', fontsize=8)
+
         # Calculate year balance
         total_income = sum(incomes)
         total_expense = sum(expenses)
