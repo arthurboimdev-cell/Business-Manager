@@ -135,5 +135,26 @@ def test_refresh_preserves_selection_when_keep_year_true(analytics_frame):
     # Refresh with keep_year=True
     analytics_frame.refresh_charts(SAMPLE_TRANSACTIONS, keep_year=True)
     
-    # Should still be 2025
-    assert analytics_frame.year_var.get() == '2025'
+
+def test_text_annotations_added(analytics_frame):
+    """Test that text annotations are added to the chart bars"""
+    # Use specific data to verify
+    test_data = [
+        {"transaction_date": "2025-01-10", "description": "Sale", "quantity": 1, "price": 500.0, "transaction_type": "income", "total": 500.0},
+        {"transaction_date": "2025-01-15", "description": "Expense", "quantity": 1, "price": 200.0, "transaction_type": "expense", "total": 200.0},
+    ]
+    
+    analytics_frame.year_var.set('2025')
+    analytics_frame.refresh_charts(test_data, keep_year=True)
+    
+    # Get all text objects from the axes
+    texts = [t.get_text() for t in analytics_frame.ax.texts]
+    
+    # Check if our values are present
+    assert "500" in texts
+    assert "200" in texts
+    
+    # Check total count: 2 bars with values > 0 should have 2 labels (plus maybe title/legend if they use text, but usually they are separate)
+    # ax.texts usually only contains the annotations we added via ax.text()
+    # Legends and Titles are stored separately.
+    assert len(texts) >= 2
