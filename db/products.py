@@ -160,17 +160,23 @@ def product_exists(title, sku=None, table=PRODUCTS_TABLE_NAME):
         cursor.close()
         conn.close()
 
+from config.config import PRODUCTS_TABLE_NAME, PRODUCT_IMAGES_TABLE
+import mysql.connector
+
+# ... (omitted)
+
 # --- Image Management ---
-def add_product_image(product_id, image_data, display_order=0):
+def add_product_image(product_id, image_data, display_order=0, table=PRODUCT_IMAGES_TABLE):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        sql = "INSERT INTO product_images (product_id, image_data, display_order) VALUES (%s, %s, %s)"
+        sql = f"INSERT INTO {table} (product_id, image_data, display_order) VALUES (%s, %s, %s)"
         cursor.execute(sql, (product_id, image_data, display_order))
         conn.commit()
         return cursor.lastrowid
     except mysql.connector.Error as err:
         print(f"Error adding image: {err}")
+        raise err # Re-raise to allow caller to handle/log
     finally:
         cursor.close()
         conn.close()

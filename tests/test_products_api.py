@@ -3,7 +3,7 @@ import pytest
 from fastapi.testclient import TestClient
 from server.main import app
 from db.init_db import init_db
-from config.config import PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA
+from config.config import PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA, PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA
 from db.db_connection import get_db_connection
 import base64
 
@@ -15,7 +15,7 @@ def setup_database():
     conn = get_db_connection()
     cursor = conn.cursor()
     # Drop in correct order (child first)
-    cursor.execute("DROP TABLE IF EXISTS product_images")
+    cursor.execute(f"DROP TABLE IF EXISTS {PRODUCT_IMAGES_TABLE}")
     cursor.execute(f"DROP TABLE IF EXISTS {PRODUCTS_TABLE_NAME}")
     conn.commit()
     cursor.close()
@@ -23,7 +23,6 @@ def setup_database():
 
     # Setup
     # Init Tables
-    from config.config import PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA
     init_db(PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA)
     init_db(PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA)
     

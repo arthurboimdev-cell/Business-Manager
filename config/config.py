@@ -231,7 +231,11 @@ if "FOREIGN KEY (product_id)" in PRODUCT_IMAGES_SCHEMA:
     
 MATERIALS_SCHEMA = config_data["data"].get("materials_schema", {})
 MATERIALS_TABLE = MATERIALS_TABLE_NAME
-PRODUCT_IMAGES_TABLE = "product_images" # Default, or from config if added later
+
+if is_frozen:
+    PRODUCT_IMAGES_TABLE = "product_images"
+else:
+    PRODUCT_IMAGES_TABLE = "product_images_test"
 
 WINDOW_TITLE = config_data["app"]["title"]
 TREE_COLUMNS = config_data["data"]["transaction_columns"]

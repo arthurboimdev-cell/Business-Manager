@@ -83,7 +83,7 @@ def main():
         print("All tests passed")
         try:
             build_executable()
-            copy_to_desktop()
+            #copy_to_desktop()
         except Exception as e:
             print(f"Build failed: {e}")
             sys.exit(1)

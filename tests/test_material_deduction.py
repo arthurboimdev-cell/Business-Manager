@@ -1,14 +1,14 @@
 import pytest
 from db.db_connection import get_db_connection
 from db import products, transactions, materials
-from config.config import PRODUCTS_TABLE_NAME, TABLE_NAME, MATERIALS_TABLE, PRODUCTS_SCHEMA, TRANSACTIONS_SCHEMA, MATERIALS_SCHEMA
+from config.config import PRODUCTS_TABLE_NAME, TABLE_NAME, MATERIALS_TABLE, PRODUCTS_SCHEMA, TRANSACTIONS_SCHEMA, MATERIALS_SCHEMA, PRODUCT_IMAGES_TABLE
 from db.init_db import init_db
 
 def setup_module():
     conn = get_db_connection()
     c = conn.cursor()
     # Cleanup all test tables
-    c.execute(f"DROP TABLE IF EXISTS product_images")
+    c.execute(f"DROP TABLE IF EXISTS {PRODUCT_IMAGES_TABLE}")
     c.execute(f"DROP TABLE IF EXISTS {PRODUCTS_TABLE_NAME}")
     c.execute(f"DROP TABLE IF EXISTS {TABLE_NAME}")
     c.execute(f"DROP TABLE IF EXISTS {MATERIALS_TABLE}")
@@ -17,7 +17,7 @@ def setup_module():
     conn.close()
 
     # Re-init
-    from config.config import PRODUCT_IMAGES_TABLE, PRODUCT_IMAGES_SCHEMA
+    from config.config import PRODUCT_IMAGES_SCHEMA
     init_db(PRODUCTS_TABLE_NAME, PRODUCTS_SCHEMA)
     init_db(TABLE_NAME, TRANSACTIONS_SCHEMA)
     init_db(MATERIALS_TABLE, MATERIALS_SCHEMA)

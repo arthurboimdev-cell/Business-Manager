@@ -35,13 +35,13 @@ from db.db_connection import get_db_connection
 def setup_module():
     # Ensure tables exist and are fresh for this test module
     from db.init_db import init_db
-    from config.config import TRANSACTIONS_SCHEMA, PRODUCTS_SCHEMA
+    from config.config import TRANSACTIONS_SCHEMA, PRODUCTS_SCHEMA, PRODUCT_IMAGES_TABLE
     from db.db_connection import get_db_connection
     
     conn = get_db_connection()
     c = conn.cursor()
     # Drop to force schema update - Correct Order
-    c.execute(f"DROP TABLE IF EXISTS product_images")
+    c.execute(f"DROP TABLE IF EXISTS {PRODUCT_IMAGES_TABLE}")
     c.execute(f"DROP TABLE IF EXISTS {PRODUCTS_TABLE_NAME}")
     c.execute(f"DROP TABLE IF EXISTS {TABLE_NAME}")
     conn.commit()
