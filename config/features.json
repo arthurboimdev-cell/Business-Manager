@@ -24,7 +24,7 @@
         "description": "Enables the 'Products' tab for managing inventory."
     },
     "materials_inventory": {
-        "enabled": true,
+        "enabled": false,
         "description": "Enables the 'Materials' tab for managing raw materials."
     },
     "shipping": {
