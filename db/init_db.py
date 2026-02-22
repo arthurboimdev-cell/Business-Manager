@@ -21,9 +21,10 @@ def generate_create_table_sql(table_name, schema):
 def create_table(table_name, schema):
     """
     Checks if table exists. If not, generates SQL from schema and creates it.
+    If it does exist, it checks for missing columns and adds them via ALTER TABLE.
     """
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     
     try:
         # Check if table exists
@@ -31,7 +32,30 @@ def create_table(table_name, schema):
         result = cursor.fetchone()
         
         if result:
-            print(f"Table '{table_name}' already exists.")
+            print(f"Table '{table_name}' already exists. Checking for missing columns...")
+            if not schema:
+                print("Warning: DB_SCHEMA is empty. Cannot check columns.")
+                return
+
+            # Get existing columns
+            cursor.execute(f"DESCRIBE {table_name}")
+            existing_columns = [row['Field'] for row in cursor.fetchall()]
+
+            # Find missing columns
+            for col_name, col_def in schema.items():
+                # Ignore foreign keys from this basic check
+                if "FOREIGN KEY" in col_name.upper() or "PRIMARY KEY" in col_name.upper():
+                    continue
+                
+                if col_name not in existing_columns:
+                    print(f"Adding missing column '{col_name}' to '{table_name}'...")
+                    alter_sql = f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_def};"
+                    try:
+                        cursor.execute(alter_sql)
+                        conn.commit()
+                        print(f"Added '{col_name}' successfully.")
+                    except Exception as alt_err:
+                        print(f"Failed to add column '{col_name}': {alt_err}")
         else:
             print(f"Table '{table_name}' does not exist. Creating...")
             create_sql = generate_create_table_sql(table_name, schema)

@@ -6,6 +6,7 @@ from gui.views import MainWindow, InputFrame, TreeFrame, SummaryFrame
 from gui.charts import AnalyticsFrame
 from gui.tabs.materials_tab import MaterialsTab
 from gui.tabs.products_tab import ProductsTab
+from gui.tabs.shipping_tab import ShippingTab
 from config.config import TREE_COLUMNS, TRANSACTION_TYPES, WINDOW_TITLE, FEATURES
 
 class TransactionController:
@@ -52,6 +53,10 @@ class TransactionController:
         if FEATURES.get("materials_inventory", True):
             self.materials_tab = MaterialsTab(self.view.tab_materials)
             self.materials_tab.pack(fill='both', expand=True, padx=10, pady=10)
+
+        # --- Tab 5: Shipping ---
+        if FEATURES.get("shipping", True):
+            self.shipping_tab = self.view.tab_shipping  # Already constructed in MainWindow
 
         # --- Tab 4: Analytics ---
         if FEATURES.get("analytics", True):
@@ -191,9 +196,12 @@ class TransactionController:
         # GLOBAL REFRESH: Ensure all tabs are up to date
         if hasattr(self, 'products_tab'):
             self.products_tab.refresh_product_list()
-            
+
         if hasattr(self, 'materials_tab'):
             self.materials_tab.refresh()
+
+        if hasattr(self, 'shipping_tab'):
+            self.shipping_tab.refresh()
 
 
     def sort_transactions(self, col):

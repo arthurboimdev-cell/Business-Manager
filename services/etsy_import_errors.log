@@ -174,3 +174,163 @@ Exception: Database error
     raise effect
 Exception: Database error
 
+
+[2026-02-06 22:26:54.267081] Attempting to create product: Test Rose Candle
+
+[2026-02-06 22:26:54.267423] Successfully created product ID: 123
+
+[2026-02-06 22:26:54.267664] Processing 1 additional images for product 123
+
+[2026-02-06 22:26:54.267983] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-06 22:26:54.268487] Added image 1 (10 bytes)
+
+[2026-02-06 22:27:10.775882] Attempting to create product: Test Rose Candle
+
+[2026-02-06 22:27:10.776282] Successfully created product ID: 123
+
+[2026-02-06 22:27:10.776568] Processing 1 additional images for product 123
+
+[2026-02-06 22:27:10.776823] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-06 22:27:10.777324] Added image 1 (10 bytes)
+
+[2026-02-06 22:27:30.832978] Attempting to create product: Test Rose Candle
+
+[2026-02-06 22:27:30.833460] Successfully created product ID: 123
+
+[2026-02-06 22:27:30.833803] Processing 1 additional images for product 123
+
+[2026-02-06 22:27:30.834235] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-06 22:27:30.834833] Added image 1 (10 bytes)
+
+[2026-02-06 22:27:59.685287] Attempting to create product: Test Rose Candle
+
+[2026-02-06 22:27:59.685730] Successfully created product ID: 123
+
+[2026-02-06 22:27:59.686039] Processing 1 additional images for product 123
+
+[2026-02-06 22:27:59.686312] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-06 22:27:59.686845] Added image 1 (10 bytes)
+
+[2026-02-06 22:30:35.921412] Attempting to create product: Test Rose Candle
+
+[2026-02-06 22:30:35.921896] Successfully created product ID: 123
+
+[2026-02-06 22:30:35.922267] Processing 1 additional images for product 123
+
+[2026-02-06 22:30:35.922703] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-06 22:30:35.923179] Added image 1 (10 bytes)
+
+[2026-02-06 22:32:00.103533] Attempting to create product: Test Rose Candle
+
+[2026-02-06 22:32:00.104162] Successfully created product ID: 123
+
+[2026-02-06 22:32:00.104659] Processing 1 additional images for product 123
+
+[2026-02-06 22:32:00.105065] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-06 22:32:00.105642] Added image 1 (10 bytes)
+
+[2026-02-09 16:43:34.142884] Attempting to create product: Test Rose Candle
+
+[2026-02-09 16:43:34.143864] Successfully created product ID: 123
+
+[2026-02-09 16:43:34.144222] Processing 1 additional images for product 123
+
+[2026-02-09 16:43:34.144735] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-09 16:43:34.145466] Added image 1 (10 bytes)
+
+[2026-02-09 16:45:14.082984] Attempting to create product: Test Rose Candle
+
+[2026-02-09 16:45:14.084079] Successfully created product ID: 123
+
+[2026-02-09 16:45:14.084635] Processing 1 additional images for product 123
+
+[2026-02-09 16:45:14.085102] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-09 16:45:14.085837] Added image 1 (10 bytes)
+
+[2026-02-09 16:45:54.059814] Attempting to create product: Test Rose Candle
+
+[2026-02-09 16:45:54.060268] Successfully created product ID: 123
+
+[2026-02-09 16:45:54.060775] Processing 1 additional images for product 123
+
+[2026-02-09 16:45:54.061316] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-09 16:45:54.062088] Added image 1 (10 bytes)
+
+[2026-02-09 16:53:04.888460] Attempting to create product: Test Rose Candle
+
+[2026-02-09 16:53:04.888816] Successfully created product ID: 123
+
+[2026-02-09 16:53:04.889116] Processing 1 additional images for product 123
+
+[2026-02-09 16:53:04.889394] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-09 16:53:04.889950] Added image 1 (10 bytes)
+
+[2026-02-09 16:54:54.263060] Attempting to create product: Test Rose Candle
+
+[2026-02-09 16:54:54.268266] Successfully created product ID: 123
+
+[2026-02-09 16:54:54.271878] Processing 1 additional images for product 123
+
+[2026-02-09 16:54:54.274447] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-09 16:54:54.278078] Added image 1 (10 bytes)
+
+[2026-02-09 17:20:09.113945] Attempting to create product: Test Rose Candle
+
+[2026-02-09 17:20:09.114855] Successfully created product ID: 123
+
+[2026-02-09 17:20:09.115391] Processing 1 additional images for product 123
+
+[2026-02-09 17:20:09.116038] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-09 17:20:09.116701] Added image 1 (10 bytes)
+
+[2026-02-09 17:33:45.175347] Attempting to create product: Test Rose Candle
+
+[2026-02-09 17:33:45.176136] Successfully created product ID: 123
+
+[2026-02-09 17:33:45.176559] Processing 1 additional images for product 123
+
+[2026-02-09 17:33:45.176842] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-09 17:33:45.177315] Added image 1 (10 bytes)
+
+[2026-02-21 18:30:57.803704] Attempting to create product: Test Rose Candle
+
+[2026-02-21 18:30:57.804713] Successfully created product ID: 123
+
+[2026-02-21 18:30:57.805348] Processing 1 additional images for product 123
+
+[2026-02-21 18:30:57.805832] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-21 18:30:57.806841] Added image 1 (10 bytes)
+
+[2026-02-21 18:33:15.252041] Attempting to create product: Test Rose Candle
+
+[2026-02-21 18:33:15.252811] Successfully created product ID: 123
+
+[2026-02-21 18:33:15.253345] Processing 1 additional images for product 123
+
+[2026-02-21 18:33:15.253867] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-21 18:33:15.254646] Added image 1 (10 bytes)
+
+[2026-02-21 18:46:00.165178] Attempting to create product: Test Rose Candle
+
+[2026-02-21 18:46:00.166176] Successfully created product ID: 123
+
+[2026-02-21 18:46:00.166679] Processing 1 additional images for product 123
+
+[2026-02-21 18:46:00.167277] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-21 18:46:00.168580] Added image 1 (10 bytes)

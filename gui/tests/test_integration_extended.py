@@ -261,8 +261,8 @@ class TestIntegrationExtended:
         """17. Invalid number string logic"""
         form.entry_title.delete(0, tk.END); form.entry_title.insert(0, "T")
         form.entry_l.delete(0, tk.END); form.entry_l.insert(0, "abc")
-        with pytest.raises(ValueError):
-            form.get_data()
+        data = form.get_data()
+        assert data["length_cm"] == 0.0
 
     # --- 3. Mock Submission / API Link (Remaining Tests) ---
     def test_integration_add_product_call(self, form):

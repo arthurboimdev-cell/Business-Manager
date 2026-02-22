@@ -703,39 +703,60 @@ class ProductForm(tk.Frame):
 
         total_cost = self.calculate_cogs()
         
+        def safe_float(entry, default=0.0):
+            try:
+                val = entry.get().strip()
+                if not val:
+                    return float(default)
+                # Replace commas with empty string to handle "1,000" gracefully
+                val = val.replace(',', '')
+                return float(val)
+            except ValueError:
+                return float(default)
+
+        def safe_int(entry, default=1):
+            try:
+                val = entry.get().strip()
+                if not val:
+                    return int(default)
+                val = val.replace(',', '')
+                return int(val)
+            except ValueError:
+                return int(default)
+        
         data = {
             "title": title,
             "sku": sku,
             "upc": self.entry_upc.get().strip(),
-            "description": self.entry_desc.get(),
-            "stock_quantity": int(self.entry_stock.get() or 0),
-            "length_cm": float(self.entry_l.get() or 0),
-            "width_cm": float(self.entry_w.get() or 0),
-            "height_cm": float(self.entry_h.get() or 0),
-            "weight_g": float(self.entry_weight.get() or 0),
-            "wax_type": self.entry_wax_name.get(),
-            "wax_weight_g": float(self.entry_wax_g.get() or 0),
-            "wax_rate": float(self.entry_wax_rate.get() or 0),
-            "fragrance_type": self.entry_frag_name.get(), 
-            "fragrance_weight_g": float(self.entry_fragrance_g.get() or 0),
-            "fragrance_rate": float(self.entry_frag_rate.get() or 0),
-            "wick_type": self.entry_wick_name.get(),
-            "wick_rate": float(self.entry_wick_rate.get() or 0),
-            "wick_quantity": int(self.entry_wick_qty.get() or 1),
-            "container_type": self.entry_container_name.get(),
-            "container_rate": float(self.entry_container_rate.get() or 0),
-            "container_quantity": int(self.entry_container_qty.get() or 1), 
-            "second_container_type": self.entry_second_container_name.get(),
-            "second_container_weight_g": float(self.entry_second_container_g.get() or 0),
-            "second_container_rate": float(self.entry_second_container_rate.get() or 0),
-            "box_type": self.entry_box_name.get(),
-            "box_price": float(self.entry_box.get() or 0),
-            "box_quantity": int(self.entry_box_qty.get() or 1),
-            "wrap_price": float(self.entry_wrap.get() or 0),
-            "business_card_cost": float(self.entry_biz_card.get() or 0),
-            "labor_time": int(self.entry_labor_time.get() or 0),
-            "labor_rate": float(self.entry_labor_rate.get() or 0),
-            "selling_price": float(self.entry_price.get() or 0),
+            "description": self.entry_desc.get().strip() if self.entry_desc.get() else None,
+            "stock_quantity": safe_int(self.entry_stock, 0),
+            "length_cm": safe_float(self.entry_l, 0),
+            "width_cm": safe_float(self.entry_w, 0),
+            "height_cm": safe_float(self.entry_h, 0),
+            "weight_g": safe_float(self.entry_weight, 0),
+            "wax_type": self.entry_wax_name.get().strip() if self.entry_wax_name.get() else None,
+            "wax_weight_g": safe_float(self.entry_wax_g, 0),
+            "wax_rate": safe_float(self.entry_wax_rate, 0),
+            "fragrance_type": self.entry_frag_name.get().strip() if getattr(self, 'entry_frag_name', None) and self.entry_frag_name.get() else None, 
+            "fragrance_weight_g": safe_float(self.entry_fragrance_g, 0),
+            "fragrance_rate": safe_float(self.entry_frag_rate, 0),
+            "wick_type": self.entry_wick_name.get().strip() if self.entry_wick_name.get() else None,
+            "wick_rate": safe_float(self.entry_wick_rate, 0),
+            "wick_quantity": safe_int(self.entry_wick_qty, 1),
+            "container_type": self.entry_container_name.get().strip() if self.entry_container_name.get() else None,
+            "container_rate": safe_float(self.entry_container_rate, 0),
+            "container_quantity": safe_int(self.entry_container_qty, 1), 
+            "second_container_type": self.entry_second_container_name.get().strip() if getattr(self, 'entry_second_container_name', None) and self.entry_second_container_name.get() else None,
+            "second_container_weight_g": safe_float(self.entry_second_container_g, 0) if getattr(self, 'entry_second_container_g', None) else 0.0,
+            "second_container_rate": safe_float(self.entry_second_container_rate, 0) if getattr(self, 'entry_second_container_rate', None) else 0.0,
+            "box_type": self.entry_box_name.get().strip() if self.entry_box_name.get() else None,
+            "box_price": safe_float(self.entry_box, 0),
+            "box_quantity": safe_int(self.entry_box_qty, 1),
+            "wrap_price": safe_float(self.entry_wrap, 0),
+            "business_card_cost": safe_float(self.entry_biz_card, 0),
+            "labor_time": safe_int(self.entry_labor_time, 0),
+            "labor_rate": safe_float(self.entry_labor_rate, 0),
+            "selling_price": safe_float(self.entry_price, 0),
             "total_cost": total_cost,
             "image": base64.b64encode(self.image_data).decode('utf-8') if self.image_data and isinstance(self.image_data, bytes) else self.image_data,
         }

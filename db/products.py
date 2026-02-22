@@ -110,12 +110,17 @@ def update_product(product_id, product_data, table=PRODUCTS_TABLE_NAME):
     
     sql = f"UPDATE {table} SET {set_clause} WHERE id = %s"
     
-    sql = f"UPDATE {table} SET {set_clause} WHERE id = %s"
-    
-    cursor.execute(sql, values)
-    conn.commit()
-    cursor.close()
-    conn.close()
+    try:
+        sql = f"UPDATE {table} SET {set_clause} WHERE id = %s"
+        cursor.execute(sql, values)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error updating product {product_id} in {table}: {err}")
+        conn.rollback()
+        raise err
+    finally:
+        cursor.close()
+        conn.close()
 
 def delete_product(product_id, table=PRODUCTS_TABLE_NAME):
     conn = get_db_connection()

@@ -26,6 +26,7 @@ def mock_gui_modules():
     class DummyBase:
         def __init__(self, *args, **kwargs):
             self.children = {}
+            self.tk = MagicMock()
         def title(self, *args): pass
         def geometry(self, *args): pass
         def pack(self, *args, **kwargs): pass
@@ -55,7 +56,8 @@ def mock_gui_modules():
         'tkinter.messagebox': MagicMock(),
         'tkinter.simpledialog': MagicMock(),
         'ttkbootstrap': mock_tb,
-        'ttkbootstrap.constants': MagicMock()
+        'ttkbootstrap.constants': MagicMock(),
+        'gui.charts': MagicMock()
     }):
         import gui.views
         reload(gui.views)
@@ -88,8 +90,9 @@ class TestFeatureFlags(unittest.TestCase):
     def _test_features(self, features):
         MainWindow = self.get_main_window_class()
         
-        # Patch MarketplaceTab to avoid it trying to do things
-        with patch('gui.views.MarketplaceTab') as MockMarketplaceTab:
+        # Patch MarketplaceTab and ShippingTab to avoid them trying to do things
+        with patch('gui.views.MarketplaceTab') as MockMarketplaceTab, \
+             patch('gui.views.ShippingTab') as MockShippingTab:
              window = MainWindow("Test", features=features)
              
              if features.get("product_inventory"):
