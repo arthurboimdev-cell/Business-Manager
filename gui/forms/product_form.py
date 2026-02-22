@@ -4,7 +4,7 @@ import base64
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from config.config import DEFAULT_LABOR_RATE, UI_LABELS, BUTTON_ADD, BUTTON_UPDATE, BUTTON_CLEAR
-from services.shipping_service import format_shipping_summary
+from services.shipping_service import format_shipping_summary, get_cheapest_by_destination
 
 import io
 import uuid
@@ -96,6 +96,15 @@ class ProductForm(tk.Frame):
         self.entry_rec_price = tk.Entry(frame_general, width=12, state="readonly", fg="blue", readonlybackground=default_bg)
         self.entry_rec_price.grid(row=6, column=3, sticky="w", padx=2)
 
+        # Shipping & Break Even (Row 7)
+        tk.Label(frame_general, text="Shipping (CA):").grid(row=7, column=0, sticky="w", pady=2)
+        self.entry_shipping = tk.Entry(frame_general, width=10, state="readonly", fg="purple", readonlybackground=default_bg)
+        self.entry_shipping.grid(row=7, column=1, sticky="w", padx=2, pady=2)
+        
+        tk.Label(frame_general, text="Break Even:").grid(row=7, column=2, sticky="w")
+        self.entry_break_even = tk.Entry(frame_general, width=12, state="readonly", fg="black", readonlybackground=default_bg)
+        self.entry_break_even.grid(row=7, column=3, sticky="w", padx=2)
+
         # --- Right Side: Main Image Preview ---
         frame_right = tk.LabelFrame(frame_top, text="Main Image", padx=5, pady=5)
         frame_right.pack(side="right", fill="y", padx=5)
@@ -121,10 +130,6 @@ class ProductForm(tk.Frame):
         tk.Label(frame_specs, text="Weight (g):").pack(side="left", padx=5)
         self.entry_weight = tk.Entry(frame_specs, width=8)
         self.entry_weight.pack(side="left")
-
-        # Automatically calculate shipping estimate on input
-        self.lbl_shipping_est = tk.Label(frame_specs, text="Est. Shipping: N/A", fg="gray")
-        self.lbl_shipping_est.pack(side="left", padx=15)
 
         for entry in [self.entry_l, self.entry_w, self.entry_h, self.entry_weight]:
             entry.bind("<KeyRelease>", self.update_shipping_estimate)
@@ -412,6 +417,7 @@ class ProductForm(tk.Frame):
 
             self.update_shipping_estimate()
             
+        self.calculate_break_even()
         return total_cost
 
     def display_main_image(self, image_input):
@@ -799,10 +805,19 @@ class ProductForm(tk.Frame):
         return data
 
     def update_shipping_estimate(self, event=None):
-        """Calculates and updates the shipping estimate label based on current weight/dimensions."""
+        """Calculates and updates the shipping CA estimate field and triggers break-even."""
         weight_str = self.entry_weight.get().strip()
+        
+        def set_ship_val(val_str):
+            self.entry_shipping.config(state="normal")
+            self.entry_shipping.delete(0, 'end')
+            if val_str:
+                self.entry_shipping.insert(0, val_str)
+            self.entry_shipping.config(state="readonly")
+            
         if not weight_str:
-            self.lbl_shipping_est.config(text="Est. Shipping: N/A")
+            set_ship_val("N/A")
+            self.calculate_break_even()
             return
 
         try:
@@ -810,9 +825,37 @@ class ProductForm(tk.Frame):
             weight_str = weight_str.replace(',', '')
             weight_g = float(weight_str)
             if weight_g > 0:
-                summary = format_shipping_summary(weight_g)
-                self.lbl_shipping_est.config(text=f"Est. Shipping: [ {summary} ]")
+                best = get_cheapest_by_destination(weight_g)
+                if best and best["ca"]:
+                    set_ship_val(f"${best['ca']['cost']:.2f}")
+                else:
+                    set_ship_val("N/A")
             else:
-                self.lbl_shipping_est.config(text="Est. Shipping: N/A")
+                set_ship_val("N/A")
         except ValueError:
-            self.lbl_shipping_est.config(text="Est. Shipping: Invalid Weight")
+            set_ship_val("Error")
+            
+        self.calculate_break_even()
+
+    def calculate_break_even(self):
+        """Adds COGS and Shipping to find the true Break Even price"""
+        try:
+            cogs_str = self.entry_cogs.get().replace('$', '').strip()
+            ship_str = self.entry_shipping.get().replace('$', '').strip()
+            
+            cogs_val = float(cogs_str) if cogs_str and cogs_str != "N/A" and cogs_str != "Error" else 0.0
+            ship_val = float(ship_str) if ship_str and ship_str != "N/A" and ship_str != "Error" else 0.0
+            
+            break_even = cogs_val + ship_val
+            
+            self.entry_break_even.config(state="normal")
+            self.entry_break_even.delete(0, 'end')
+            if break_even > 0:
+                self.entry_break_even.insert(0, f"${break_even:.2f}")
+            self.entry_break_even.config(state="readonly")
+        except Exception as e:
+            self.entry_break_even.config(state="normal")
+            self.entry_break_even.delete(0, 'end')
+            self.entry_break_even.insert(0, "Error")
+            self.entry_break_even.config(state="readonly")
+
