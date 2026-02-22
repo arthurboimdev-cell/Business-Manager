@@ -96,14 +96,23 @@ class ProductForm(tk.Frame):
         self.entry_rec_price = tk.Entry(frame_general, width=12, state="readonly", fg="blue", readonlybackground=default_bg)
         self.entry_rec_price.grid(row=6, column=3, sticky="w", padx=2)
 
-        # Shipping & Break Even (Row 7)
+        # Shipping & Break Even CA (Row 7)
         tk.Label(frame_general, text="Shipping (CA):").grid(row=7, column=0, sticky="w", pady=2)
-        self.entry_shipping = tk.Entry(frame_general, width=10, state="readonly", fg="purple", readonlybackground=default_bg)
-        self.entry_shipping.grid(row=7, column=1, sticky="w", padx=2, pady=2)
+        self.entry_shipping_ca = tk.Entry(frame_general, width=10, state="readonly", fg="purple", readonlybackground=default_bg)
+        self.entry_shipping_ca.grid(row=7, column=1, sticky="w", padx=2, pady=2)
         
-        tk.Label(frame_general, text="Break Even:").grid(row=7, column=2, sticky="w")
-        self.entry_break_even = tk.Entry(frame_general, width=12, state="readonly", fg="black", readonlybackground=default_bg)
-        self.entry_break_even.grid(row=7, column=3, sticky="w", padx=2)
+        tk.Label(frame_general, text="Break Even (CA):").grid(row=7, column=2, sticky="w")
+        self.entry_break_even_ca = tk.Entry(frame_general, width=12, state="readonly", fg="black", readonlybackground=default_bg)
+        self.entry_break_even_ca.grid(row=7, column=3, sticky="w", padx=2)
+
+        # Shipping & Break Even US (Row 8)
+        tk.Label(frame_general, text="Shipping (US):").grid(row=8, column=0, sticky="w", pady=2)
+        self.entry_shipping_us = tk.Entry(frame_general, width=10, state="readonly", fg="purple", readonlybackground=default_bg)
+        self.entry_shipping_us.grid(row=8, column=1, sticky="w", padx=2, pady=2)
+        
+        tk.Label(frame_general, text="Break Even (US):").grid(row=8, column=2, sticky="w")
+        self.entry_break_even_us = tk.Entry(frame_general, width=12, state="readonly", fg="black", readonlybackground=default_bg)
+        self.entry_break_even_us.grid(row=8, column=3, sticky="w", padx=2)
 
         # --- Right Side: Main Image Preview ---
         frame_right = tk.LabelFrame(frame_top, text="Main Image", padx=5, pady=5)
@@ -805,18 +814,19 @@ class ProductForm(tk.Frame):
         return data
 
     def update_shipping_estimate(self, event=None):
-        """Calculates and updates the shipping CA estimate field and triggers break-even."""
+        """Calculates and updates both CA and US shipping estimate fields and triggers break-even."""
         weight_str = self.entry_weight.get().strip()
         
-        def set_ship_val(val_str):
-            self.entry_shipping.config(state="normal")
-            self.entry_shipping.delete(0, 'end')
+        def set_ship_val(entry, val_str):
+            entry.config(state="normal")
+            entry.delete(0, 'end')
             if val_str:
-                self.entry_shipping.insert(0, val_str)
-            self.entry_shipping.config(state="readonly")
+                entry.insert(0, val_str)
+            entry.config(state="readonly")
             
         if not weight_str:
-            set_ship_val("N/A")
+            set_ship_val(self.entry_shipping_ca, "N/A")
+            set_ship_val(self.entry_shipping_us, "N/A")
             self.calculate_break_even()
             return
 
@@ -827,35 +837,59 @@ class ProductForm(tk.Frame):
             if weight_g > 0:
                 best = get_cheapest_by_destination(weight_g)
                 if best and best["ca"]:
-                    set_ship_val(f"${best['ca']['cost']:.2f}")
+                    set_ship_val(self.entry_shipping_ca, f"${best['ca']['cost']:.2f}")
                 else:
-                    set_ship_val("N/A")
+                    set_ship_val(self.entry_shipping_ca, "N/A")
+                
+                if best and best["us"]:
+                    set_ship_val(self.entry_shipping_us, f"${best['us']['cost']:.2f}")
+                else:
+                    set_ship_val(self.entry_shipping_us, "N/A")
             else:
-                set_ship_val("N/A")
+                set_ship_val(self.entry_shipping_ca, "N/A")
+                set_ship_val(self.entry_shipping_us, "N/A")
         except ValueError:
-            set_ship_val("Error")
+            set_ship_val(self.entry_shipping_ca, "Error")
+            set_ship_val(self.entry_shipping_us, "Error")
             
         self.calculate_break_even()
 
     def calculate_break_even(self):
-        """Adds COGS and Shipping to find the true Break Even price"""
+        """Adds COGS and Shipping to find the true Break Even price for both CA and US"""
         try:
             cogs_str = self.entry_cogs.get().replace('$', '').strip()
-            ship_str = self.entry_shipping.get().replace('$', '').strip()
-            
             cogs_val = float(cogs_str) if cogs_str and cogs_str != "N/A" and cogs_str != "Error" else 0.0
-            ship_val = float(ship_str) if ship_str and ship_str != "N/A" and ship_str != "Error" else 0.0
             
-            break_even = cogs_val + ship_val
+            # CA
+            ship_ca_str = self.entry_shipping_ca.get().replace('$', '').strip()
+            ship_ca_val = float(ship_ca_str) if ship_ca_str and ship_ca_str != "N/A" and ship_ca_str != "Error" else 0.0
+            break_even_ca = cogs_val + ship_ca_val
             
-            self.entry_break_even.config(state="normal")
-            self.entry_break_even.delete(0, 'end')
-            if break_even > 0:
-                self.entry_break_even.insert(0, f"${break_even:.2f}")
-            self.entry_break_even.config(state="readonly")
+            self.entry_break_even_ca.config(state="normal")
+            self.entry_break_even_ca.delete(0, 'end')
+            if break_even_ca > 0:
+                self.entry_break_even_ca.insert(0, f"${break_even_ca:.2f}")
+            self.entry_break_even_ca.config(state="readonly")
+            
+            # US
+            ship_us_str = self.entry_shipping_us.get().replace('$', '').strip()
+            ship_us_val = float(ship_us_str) if ship_us_str and ship_us_str != "N/A" and ship_us_str != "Error" else 0.0
+            break_even_us = cogs_val + ship_us_val
+            
+            self.entry_break_even_us.config(state="normal")
+            self.entry_break_even_us.delete(0, 'end')
+            if break_even_us > 0:
+                self.entry_break_even_us.insert(0, f"${break_even_us:.2f}")
+            self.entry_break_even_us.config(state="readonly")
+            
         except Exception as e:
-            self.entry_break_even.config(state="normal")
-            self.entry_break_even.delete(0, 'end')
-            self.entry_break_even.insert(0, "Error")
-            self.entry_break_even.config(state="readonly")
+            self.entry_break_even_ca.config(state="normal")
+            self.entry_break_even_ca.delete(0, 'end')
+            self.entry_break_even_ca.insert(0, "Error")
+            self.entry_break_even_ca.config(state="readonly")
+            
+            self.entry_break_even_us.config(state="normal")
+            self.entry_break_even_us.delete(0, 'end')
+            self.entry_break_even_us.insert(0, "Error")
+            self.entry_break_even_us.config(state="readonly")
 
