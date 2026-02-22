@@ -1,9 +1,11 @@
 from client.api_client import APIClient
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
-from config.config import DEFAULT_LABOR_RATE
-
+import copy
 import base64
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+from config.config import DEFAULT_LABOR_RATE, UI_LABELS, BUTTON_ADD, BUTTON_UPDATE, BUTTON_CLEAR
+from services.shipping_service import format_shipping_summary
+
 import io
 import uuid
 
@@ -119,6 +121,14 @@ class ProductForm(tk.Frame):
         tk.Label(frame_specs, text="Weight (g):").pack(side="left", padx=5)
         self.entry_weight = tk.Entry(frame_specs, width=8)
         self.entry_weight.pack(side="left")
+
+        # Automatically calculate shipping estimate on input
+        self.lbl_shipping_est = tk.Label(frame_specs, text="Est. Shipping: N/A", fg="gray")
+        self.lbl_shipping_est.pack(side="left", padx=15)
+
+        for entry in [self.entry_l, self.entry_w, self.entry_h, self.entry_weight]:
+            entry.bind("<KeyRelease>", self.update_shipping_estimate)
+            entry.bind("<FocusOut>", self.update_shipping_estimate)
         
         # --- 3. Image Gallery (Placeholder for now) ---
         frame_imgs = tk.LabelFrame(parent, text="3. Images (Max 20)", padx=5, pady=5)
@@ -400,6 +410,8 @@ class ProductForm(tk.Frame):
             self.entry_weight.delete(0, "end")
             self.entry_weight.insert(0, f"{calc_weight:.2f}")
 
+            self.update_shipping_estimate()
+            
         return total_cost
 
     def display_main_image(self, image_input):
@@ -633,11 +645,35 @@ class ProductForm(tk.Frame):
         set_val(self.entry_wax_g, data.get('wax_weight_g'))
         set_val(self.entry_wax_rate, data.get('wax_rate'))
         
-        set_val(self.entry_frag_name, data.get('fragrance_type')) # Note: schema might differ, check products_tab
-        # Wait, products_tab doesn't have fragrance_type in entry map? 
-        # Checking old file: "fragrance_type": self.entry_frag_name.get() -> in creation? No.
-        # ProductsTab load logic:
-        # self.entry_frag_name.insert(0, str(product.get('fragrance_type') or "")) 
+        if hasattr(self, 'entry_frag_name'):
+            set_val(self.entry_frag_name, data.get('fragrance_type'))
+        set_val(self.entry_fragrance_g, data.get('fragrance_weight_g'))
+        set_val(self.entry_frag_rate, data.get('fragrance_rate'))
+        
+        set_val(self.entry_wick_name, data.get('wick_type'))
+        set_val(self.entry_wick_rate, data.get('wick_rate'))
+        set_val(self.entry_wick_qty, data.get('wick_quantity', 1))
+
+        set_val(self.entry_container_name, data.get('container_type'))
+        set_val(self.entry_container_rate, data.get('container_rate'))
+        set_val(self.entry_container_qty, data.get('container_quantity', 1))
+
+        if hasattr(self, 'entry_second_container_name'):
+            set_val(self.entry_second_container_name, data.get('second_container_type'))
+            set_val(self.entry_second_container_g, data.get('second_container_weight_g'))
+            set_val(self.entry_second_container_rate, data.get('second_container_rate'))
+            
+        set_val(self.entry_box_name, data.get('box_type'))
+        set_val(self.entry_box, data.get('box_price'))
+        set_val(self.entry_box_qty, data.get('box_quantity', 1))
+        
+        set_val(self.entry_wrap, data.get('wrap_price'))
+        set_val(self.entry_biz_card, data.get('business_card_cost'))
+        
+        set_val(self.entry_labor_time, data.get('labor_time'))
+        set_val(self.entry_labor_rate, data.get('labor_rate'))
+        
+        self.update_shipping_estimate()
         # Ah, DB has fragrance_type? 
         # Let's check DB schema or API response. 
         # Assuming API returns keys matching what we saved. 
@@ -761,3 +797,22 @@ class ProductForm(tk.Frame):
             "image": base64.b64encode(self.image_data).decode('utf-8') if self.image_data and isinstance(self.image_data, bytes) else self.image_data,
         }
         return data
+
+    def update_shipping_estimate(self, event=None):
+        """Calculates and updates the shipping estimate label based on current weight/dimensions."""
+        weight_str = self.entry_weight.get().strip()
+        if not weight_str:
+            self.lbl_shipping_est.config(text="Est. Shipping: N/A")
+            return
+
+        try:
+            # Safely parse commas or spaces
+            weight_str = weight_str.replace(',', '')
+            weight_g = float(weight_str)
+            if weight_g > 0:
+                summary = format_shipping_summary(weight_g)
+                self.lbl_shipping_est.config(text=f"Est. Shipping: [ {summary} ]")
+            else:
+                self.lbl_shipping_est.config(text="Est. Shipping: N/A")
+        except ValueError:
+            self.lbl_shipping_est.config(text="Est. Shipping: Invalid Weight")
