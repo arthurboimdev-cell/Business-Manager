@@ -244,3 +244,81 @@ class TestWeightPreservation:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+class TestProfitCalculation:
+    """Test profit calculation with COGS, shipping, and Etsy fees"""
+    
+    def test_profit_basic(self, form):
+        """Test profit calculation: Price - (COGS + Shipping + Etsy Fees)"""
+        from gui.tests.test_advanced_pricing import setup_bom
+        
+        set_val(form.entry_price, "25.00")
+        set_val(form.entry_shipping_ca, "5.00")
+        
+        # Setup BOM to get COGS of ~$10
+        setup_bom(form, wax_g=100, wax_rate=100)  # 100g * (100/1000) = $10 COGS
+        
+        form.calculate_cogs()
+        
+        # Etsy fees on $25: 0.20 + (25 * 0.065) + (25 * 0.03) + 0.25 = 2.825
+        # Profit = 25 - (10 + 5 + 2.825) = $7.175
+        calls = form.entry_profit.insert.call_args_list
+        assert len(calls) > 0
+        args, _ = calls[-1]
+        profit = float(args[1].replace('$', ''))
+        assert 7.0 < profit < 7.3, f"Expected ~$7.18, got ${profit}"
+    
+    def test_profit_negative(self, form):
+        """Test negative profit when costs exceed price"""
+        from gui.tests.test_advanced_pricing import setup_bom
+        
+        set_val(form.entry_price, "10.00")
+        set_val(form.entry_shipping_ca, "3.00")
+        
+        # Setup BOM to get COGS of ~$12
+        setup_bom(form, wax_g=200, wax_rate=60)  # 200g * (60/1000) = $12 COGS
+        
+        form.calculate_cogs()
+        
+        # Etsy fees on $10: 0.20 + 0.65 + 0.3 + 0.25 = 1.4
+        # Profit = 10 - (12 + 3 + 1.4) = -6.4
+        calls = form.entry_profit.insert.call_args_list
+        args, _ = calls[-1]
+        profit = float(args[1].replace('$', ''))
+        assert profit < 0
+    
+    def test_profit_no_shipping(self, form):
+        """Test profit with no shipping cost"""
+        from gui.tests.test_advanced_pricing import setup_bom
+        
+        set_val(form.entry_price, "20.00")
+        set_val(form.entry_shipping_ca, "0")
+        
+        # Setup BOM to get COGS of ~$8
+        setup_bom(form, wax_g=100, wax_rate=80)  # 100g * (80/1000) = $8 COGS
+        
+        form.calculate_cogs()
+        
+        # Etsy fees on $20: 0.20 + 1.3 + 0.6 + 0.25 = 2.35
+        # Profit = 20 - (8 + 0 + 2.35) = 9.65
+        calls = form.entry_profit.insert.call_args_list
+        args, _ = calls[-1]
+        profit = float(args[1].replace('$', ''))
+        assert 9.5 < profit < 9.8
+    
+    def test_profit_zero_price(self, form):
+        """Test profit with zero price (should be negative)"""
+        from gui.tests.test_advanced_pricing import setup_bom
+        
+        set_val(form.entry_price, "0")
+        set_val(form.entry_shipping_ca, "2.00")
+        
+        setup_bom(form, wax_g=50, wax_rate=100)  # $5 COGS
+        
+        form.calculate_cogs()
+        
+        calls = form.entry_profit.insert.call_args_list
+        args, _ = calls[-1]
+        profit = float(args[1].replace('$', ''))
+        assert profit < 0  # Should be negative

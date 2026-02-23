@@ -355,19 +355,33 @@ class ProductForm(tk.Frame):
         self.entry_cogs.config(state="readonly")
         
         # Calculate Profit
-        # Get Price
+        # Profit = Selling Price - (COGS + Shipping + Etsy Fees)
         try:
              price_val = float(self.entry_price.get())
         except ValueError:
              price_val = 0.0
-             
-        profit = price_val - total_cost
+        
+        # Get Shipping (use CA by default)
+        try:
+            ship_ca_str = self.entry_shipping_ca.get().replace('$', '').strip()
+            shipping_val = float(ship_ca_str) if ship_ca_str and ship_ca_str not in ["N/A", "Error"] else 0.0
+        except (ValueError, AttributeError):
+            shipping_val = 0.0
+        
+        # Calculate Etsy fees on the selling price
+        LISTING_FEE = 0.20
+        TRANSACTION_RATE = 0.065  # 6.5%
+        PAYMENT_RATE = 0.03       # 3%
+        PAYMENT_FIXED = 0.25
+        
+        etsy_fees = LISTING_FEE + (price_val * TRANSACTION_RATE) + (price_val * PAYMENT_RATE) + PAYMENT_FIXED
+        
+        # Profit = Price - (COGS + Shipping + Etsy Fees)
+        profit = price_val - (total_cost + shipping_val + etsy_fees)
         
         self.entry_profit.config(state="normal", fg="green" if profit >= 0 else "red")
         self.entry_profit.delete(0, "end")
         self.entry_profit.insert(0, f"${profit:.2f}")
-        self.entry_profit.config(state="readonly")
-
         self.entry_profit.config(state="readonly")
 
         # Calculate Recommended Price logic

@@ -384,3 +384,113 @@ Exception: Database error
 [2026-02-21 20:03:57.692670] Downloading image 1: https://example.com/image2.jpg...
 
 [2026-02-21 20:03:57.693367] Added image 1 (10 bytes)
+
+[2026-02-22 16:56:22.510253] Attempting to create product: Test Rose Candle
+
+[2026-02-22 16:56:22.511459] Successfully created product ID: 123
+
+[2026-02-22 16:56:22.511921] Processing 1 additional images for product 123
+
+[2026-02-22 16:56:22.512410] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-22 16:56:22.513136] Added image 1 (10 bytes)
+
+[2026-02-23 11:58:34.954672] Attempting to create product: Test Rose Candle
+
+[2026-02-23 11:58:34.955718] Successfully created product ID: 123
+
+[2026-02-23 11:58:34.956236] Processing 1 additional images for product 123
+
+[2026-02-23 11:58:34.956692] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 11:58:34.958178] Added image 1 (10 bytes)
+
+[2026-02-23 12:09:20.601409] Attempting to create product: Test Rose Candle
+
+[2026-02-23 12:09:20.602333] Successfully created product ID: 123
+
+[2026-02-23 12:09:20.602663] Processing 1 additional images for product 123
+
+[2026-02-23 12:09:20.603073] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 12:09:20.604065] Added image 1 (10 bytes)
+
+[2026-02-23 12:14:18.865340] Attempting to create product: Test Rose Candle
+
+[2026-02-23 12:14:18.866032] Successfully created product ID: 123
+
+[2026-02-23 12:14:18.866450] Processing 1 additional images for product 123
+
+[2026-02-23 12:14:18.866923] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 12:14:18.868365] Added image 1 (10 bytes)
+
+[2026-02-23 13:23:20.743377] Attempting to create product: Test Rose Candle
+
+[2026-02-23 13:23:20.744399] Successfully created product ID: 123
+
+[2026-02-23 13:23:20.744901] Processing 1 additional images for product 123
+
+[2026-02-23 13:23:20.745280] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 13:23:20.745831] Added image 1 (10 bytes)
+
+[2026-02-23 14:05:54.247694] Attempting to create product: Test Rose Candle
+
+[2026-02-23 14:05:54.248433] Successfully created product ID: 123
+
+[2026-02-23 14:05:54.248767] Processing 1 additional images for product 123
+
+[2026-02-23 14:05:54.249088] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 14:05:54.249630] Added image 1 (10 bytes)
+
+[2026-02-23 14:27:00.162661] Attempting to create product: Test Rose Candle
+
+[2026-02-23 14:27:00.163352] Successfully created product ID: 123
+
+[2026-02-23 14:27:00.163728] Processing 1 additional images for product 123
+
+[2026-02-23 14:27:00.164105] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 14:27:00.164912] Added image 1 (10 bytes)
+
+[2026-02-23 14:34:18.625890] Attempting to create product: Test Rose Candle
+
+[2026-02-23 14:34:18.627474] Successfully created product ID: 123
+
+[2026-02-23 14:34:18.628195] Processing 1 additional images for product 123
+
+[2026-02-23 14:34:18.628895] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 14:34:18.630282] Added image 1 (10 bytes)
+
+[2026-02-23 15:13:05.709166] Attempting to create product: Test Rose Candle
+
+[2026-02-23 15:13:05.709997] Successfully created product ID: 123
+
+[2026-02-23 15:13:05.710380] Processing 1 additional images for product 123
+
+[2026-02-23 15:13:05.710792] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 15:13:05.711523] Added image 1 (10 bytes)
+
+[2026-02-23 15:14:53.970026] Attempting to create product: Test Rose Candle
+
+[2026-02-23 15:14:53.970669] Successfully created product ID: 123
+
+[2026-02-23 15:14:53.971044] Processing 1 additional images for product 123
+
+[2026-02-23 15:14:53.971524] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 15:14:53.972300] Added image 1 (10 bytes)
+
+[2026-02-23 15:18:44.121586] Attempting to create product: Test Rose Candle
+
+[2026-02-23 15:18:44.122402] Successfully created product ID: 123
+
+[2026-02-23 15:18:44.122802] Processing 1 additional images for product 123
+
+[2026-02-23 15:18:44.123326] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 15:18:44.123985] Added image 1 (10 bytes)

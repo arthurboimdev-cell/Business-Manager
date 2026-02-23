@@ -333,15 +333,14 @@ class TestIntegrationExtended:
         form.entry_cogs.delete(0, tk.END); form.entry_cogs.insert(0, "0.0")
         form.entry_cogs.configure(state='readonly')
         
-        # calculate uses entries. If COGS entry logic in calculate is:
-        # cogs = ... calculate based on components ...
-        # profit = price - cogs
-        # So we must ensure COGS components are 0.
+        # Profit is now: Price - (COGS + Shipping + Etsy Fees)
+        # Etsy Fees = 0.20 + (price * 0.065) + (price * 0.03) + 0.25
+        # At price=100, COGS=0, Shipping=0: profit = 100 - 9.95 = 90.05
         form.clear() # resets BOM to 0/defaults
         form.entry_price.insert(0, "100")
         form.calculate_cogs() 
         profit = form.entry_profit.get().replace('$', '').replace(',', '')
-        assert float(profit) == 100.0
+        assert float(profit) == 90.05
 
     def test_extra_long_sku(self, form):
         """26. Long SKU"""
