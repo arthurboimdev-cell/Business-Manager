@@ -114,6 +114,15 @@ class ProductForm(tk.Frame):
         self.entry_break_even_us = tk.Entry(frame_general, width=12, state="readonly", fg="black", readonlybackground=default_bg)
         self.entry_break_even_us.grid(row=8, column=3, sticky="w", padx=2)
 
+        # Etsy Fees CA (Row 9)
+        tk.Label(frame_general, text="Etsy Fees (CA):").grid(row=9, column=0, sticky="w", pady=2)
+        self.entry_etsy_fees_ca = tk.Entry(frame_general, width=10, state="readonly", fg="orange", readonlybackground=default_bg)
+        self.entry_etsy_fees_ca.grid(row=9, column=1, sticky="w", padx=2, pady=2)
+        
+        tk.Label(frame_general, text="Etsy Fees (US):").grid(row=9, column=2, sticky="w")
+        self.entry_etsy_fees_us = tk.Entry(frame_general, width=12, state="readonly", fg="orange", readonlybackground=default_bg)
+        self.entry_etsy_fees_us.grid(row=9, column=3, sticky="w", padx=2)
+
         # --- Right Side: Main Image Preview ---
         frame_right = tk.LabelFrame(frame_top, text="Main Image", padx=5, pady=5)
         frame_right.pack(side="right", fill="y", padx=5)
@@ -419,12 +428,17 @@ class ProductForm(tk.Frame):
                 if w_val > 0:
                      calc_weight += w_val
         
-        # Update Weight Entry if calculated weight > 0
+        # Update Weight Entry if calculated weight > 0 and user hasn't manually set it
         if calc_weight > 0:
-            self.entry_weight.delete(0, "end")
-            self.entry_weight.insert(0, f"{calc_weight:.2f}")
-
-            self.update_shipping_estimate()
+            current_weight = self.entry_weight.get().strip()
+            # Only auto-fill if weight is empty (user hasn't manually entered)
+            if not current_weight:
+                self.entry_weight.delete(0, "end")
+                self.entry_weight.insert(0, f"{calc_weight:.2f}")
+                self.update_shipping_estimate()
+            else:
+                # User manually entered weight, so just update shipping with their value
+                self.update_shipping_estimate()
             
         self.calculate_break_even()
         return total_cost
@@ -627,6 +641,12 @@ class ProductForm(tk.Frame):
         self.entry_container_qty.delete(0, tk.END); self.entry_container_qty.insert(0, "1")
         self.entry_box_qty.delete(0, tk.END); self.entry_box_qty.insert(0, "1")
         self.entry_labor_rate.delete(0, tk.END); self.entry_labor_rate.insert(0, str(DEFAULT_LABOR_RATE))
+        
+        # Clear readonly fields
+        for entry in [self.entry_etsy_fees_ca, self.entry_etsy_fees_us]:
+            entry.config(state="normal")
+            entry.delete(0, tk.END)
+            entry.config(state="readonly")
         
         self.image_data = None
         self.pending_gallery_images = []
@@ -855,15 +875,40 @@ class ProductForm(tk.Frame):
         self.calculate_break_even()
 
     def calculate_break_even(self):
-        """Adds COGS and Shipping to find the true Break Even price for both CA and US"""
+        """Calculates Break Even price including COGS, Shipping (FREE SHIPPING - included in price), and Etsy Fees for both CA and US
+        
+        Etsy Fees (standard):
+        - Listing: $0.20 fixed
+        - Transaction: 6.5% of Price
+        - Payment Processing: 3% + $0.25 of Price
+        
+        Since shipping is FREE (included in price):
+        Formula: Price = (COGS + Shipping + 0.45) / 0.905
+        """
         try:
             cogs_str = self.entry_cogs.get().replace('$', '').strip()
             cogs_val = float(cogs_str) if cogs_str and cogs_str != "N/A" and cogs_str != "Error" else 0.0
             
+            # Etsy fee rates
+            LISTING_FEE = 0.20
+            TRANSACTION_RATE = 0.065  # 6.5%
+            PAYMENT_RATE = 0.03       # 3%
+            PAYMENT_FIXED = 0.25
+            COMBINED_RATE = TRANSACTION_RATE + PAYMENT_RATE  # 9.5%
+            
             # CA
             ship_ca_str = self.entry_shipping_ca.get().replace('$', '').strip()
             ship_ca_val = float(ship_ca_str) if ship_ca_str and ship_ca_str != "N/A" and ship_ca_str != "Error" else 0.0
-            break_even_ca = cogs_val + ship_ca_val
+            
+            # Calculate break-even with FREE shipping (included in price)
+            # break_even = (cogs + shipping + LISTING_FEE + PAYMENT_FIXED) / (1 - COMBINED_RATE)
+            break_even_ca = (cogs_val + ship_ca_val + LISTING_FEE + PAYMENT_FIXED) / (1 - COMBINED_RATE)
+            
+            # Calculate Etsy fees at break-even price (CA)
+            etsy_listing_fee_ca = LISTING_FEE
+            etsy_transaction_fee_ca = break_even_ca * TRANSACTION_RATE
+            etsy_payment_fee_ca = (break_even_ca * PAYMENT_RATE) + PAYMENT_FIXED
+            total_etsy_fees_ca = etsy_listing_fee_ca + etsy_transaction_fee_ca + etsy_payment_fee_ca
             
             self.entry_break_even_ca.config(state="normal")
             self.entry_break_even_ca.delete(0, 'end')
@@ -871,16 +916,36 @@ class ProductForm(tk.Frame):
                 self.entry_break_even_ca.insert(0, f"${break_even_ca:.2f}")
             self.entry_break_even_ca.config(state="readonly")
             
+            self.entry_etsy_fees_ca.config(state="normal")
+            self.entry_etsy_fees_ca.delete(0, 'end')
+            if total_etsy_fees_ca > 0:
+                self.entry_etsy_fees_ca.insert(0, f"${total_etsy_fees_ca:.2f}")
+            self.entry_etsy_fees_ca.config(state="readonly")
+            
             # US
             ship_us_str = self.entry_shipping_us.get().replace('$', '').strip()
             ship_us_val = float(ship_us_str) if ship_us_str and ship_us_str != "N/A" and ship_us_str != "Error" else 0.0
-            break_even_us = cogs_val + ship_us_val
+            
+            # Calculate break-even with FREE shipping (included in price)
+            break_even_us = (cogs_val + ship_us_val + LISTING_FEE + PAYMENT_FIXED) / (1 - COMBINED_RATE)
+            
+            # Calculate Etsy fees at break-even price (US)
+            etsy_listing_fee_us = LISTING_FEE
+            etsy_transaction_fee_us = break_even_us * TRANSACTION_RATE
+            etsy_payment_fee_us = (break_even_us * PAYMENT_RATE) + PAYMENT_FIXED
+            total_etsy_fees_us = etsy_listing_fee_us + etsy_transaction_fee_us + etsy_payment_fee_us
             
             self.entry_break_even_us.config(state="normal")
             self.entry_break_even_us.delete(0, 'end')
             if break_even_us > 0:
                 self.entry_break_even_us.insert(0, f"${break_even_us:.2f}")
             self.entry_break_even_us.config(state="readonly")
+            
+            self.entry_etsy_fees_us.config(state="normal")
+            self.entry_etsy_fees_us.delete(0, 'end')
+            if total_etsy_fees_us > 0:
+                self.entry_etsy_fees_us.insert(0, f"${total_etsy_fees_us:.2f}")
+            self.entry_etsy_fees_us.config(state="readonly")
             
         except Exception as e:
             self.entry_break_even_ca.config(state="normal")
@@ -892,4 +957,14 @@ class ProductForm(tk.Frame):
             self.entry_break_even_us.delete(0, 'end')
             self.entry_break_even_us.insert(0, "Error")
             self.entry_break_even_us.config(state="readonly")
+            
+            self.entry_etsy_fees_ca.config(state="normal")
+            self.entry_etsy_fees_ca.delete(0, 'end')
+            self.entry_etsy_fees_ca.insert(0, "Error")
+            self.entry_etsy_fees_ca.config(state="readonly")
+            
+            self.entry_etsy_fees_us.config(state="normal")
+            self.entry_etsy_fees_us.delete(0, 'end')
+            self.entry_etsy_fees_us.insert(0, "Error")
+            self.entry_etsy_fees_us.config(state="readonly")
 

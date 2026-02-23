@@ -51,6 +51,8 @@ def form(mock_tk_env):
         parent = MagicMock()
         # Initialize form with just parent
         form = ProductForm(parent)
+        # Initialize entry_weight.get() to return empty string so auto-calc works
+        form.entry_weight.get.return_value = ""
         return form
 
 # --- Helper Functions ---
