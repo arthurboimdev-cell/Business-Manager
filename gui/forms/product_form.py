@@ -73,30 +73,43 @@ class ProductForm(tk.Frame):
         self.entry_stock = tk.Entry(frame_general, width=10)
         self.entry_stock.grid(row=4, column=1, sticky="w", padx=2, pady=2)
         
-        tk.Label(frame_general, text="Price ($)*:").grid(row=4, column=2, sticky="w")
-        self.entry_price = tk.Entry(frame_general, width=12)
-        self.entry_price.grid(row=4, column=3, sticky="w", padx=2)
-        self.entry_price.bind("<KeyRelease>", self.calculate_cogs)
+        tk.Label(frame_general, text="Price CA ($)*:").grid(row=4, column=2, sticky="w")
+        self.entry_price_ca = tk.Entry(frame_general, width=12)
+        self.entry_price_ca.grid(row=4, column=3, sticky="w", padx=2)
+        self.entry_price_ca.bind("<KeyRelease>", self.calculate_cogs)
         
-        # COGS & Profit (Row 5)
+        # Price US (Row 5, Column 2-3)
+        tk.Label(frame_general, text="Price US ($)*:").grid(row=5, column=2, sticky="w")
+        self.entry_price_us = tk.Entry(frame_general, width=12)
+        self.entry_price_us.grid(row=5, column=3, sticky="w", padx=2)
+        self.entry_price_us.bind("<KeyRelease>", self.calculate_cogs)
+        
+        # COGS & Profit (Row 5, Column 0-1)
         
         # Capture theme's default entry background dynamically
-        default_bg = self.entry_price.cget("bg")
+        default_bg = self.entry_price_ca.cget("bg")
         
         tk.Label(frame_general, text="COGS:").grid(row=5, column=0, sticky="w", pady=2)
         self.entry_cogs = tk.Entry(frame_general, width=10, state="readonly", fg="red", readonlybackground=default_bg)
         self.entry_cogs.grid(row=5, column=1, sticky="w", padx=2, pady=2)
         
-        tk.Label(frame_general, text="Profit:").grid(row=5, column=2, sticky="w")
-        self.entry_profit = tk.Entry(frame_general, width=12, state="readonly", fg="green", readonlybackground=default_bg)
-        self.entry_profit.grid(row=5, column=3, sticky="w", padx=2)
+        # Keep backward compatibility
+        self.entry_price = self.entry_price_ca
+        
+        # Recommended Price (CA & US) (Row 6)
+        tk.Label(frame_general, text="Rec. Price CA:").grid(row=6, column=0, sticky="w", pady=2)
+        self.entry_rec_price_ca = tk.Entry(frame_general, width=10, state="readonly", fg="blue", readonlybackground=default_bg)
+        self.entry_rec_price_ca.grid(row=6, column=1, sticky="w", padx=2, pady=2)
+        
+        tk.Label(frame_general, text="Rec. Price US:").grid(row=6, column=2, sticky="w")
+        self.entry_rec_price_us = tk.Entry(frame_general, width=12, state="readonly", fg="blue", readonlybackground=default_bg)
+        self.entry_rec_price_us.grid(row=6, column=3, sticky="w", padx=2)
+        
+        # Keep backward compatibility
+        self.entry_rec_price = self.entry_rec_price_ca
 
-        # Recommended Price (Row 6)
-        tk.Label(frame_general, text="Rec. Price:").grid(row=6, column=2, sticky="w")
-        self.entry_rec_price = tk.Entry(frame_general, width=12, state="readonly", fg="blue", readonlybackground=default_bg)
-        self.entry_rec_price.grid(row=6, column=3, sticky="w", padx=2)
-
-        # Shipping & Break Even CA (Row 7)
+        # Backward compatibility: entry_profit will be set to entry_profit_ca after it's created
+        self.entry_profit = None        # Shipping & Break Even CA (Row 7)
         tk.Label(frame_general, text="Shipping (CA):").grid(row=7, column=0, sticky="w", pady=2)
         self.entry_shipping_ca = tk.Entry(frame_general, width=10, state="readonly", fg="purple", readonlybackground=default_bg)
         self.entry_shipping_ca.grid(row=7, column=1, sticky="w", padx=2, pady=2)
@@ -366,9 +379,14 @@ class ProductForm(tk.Frame):
         # Calculate Profit
         # Profit = Selling Price - (COGS + Shipping + Etsy Fees)
         try:
-             price_val = float(self.entry_price.get())
+             price_ca = float(self.entry_price_ca.get())
         except ValueError:
-             price_val = 0.0
+             price_ca = 0.0
+        
+        try:
+             price_us = float(self.entry_price_us.get())
+        except ValueError:
+             price_us = 0.0
         
         # Get Shipping for CA and US
         try:
@@ -383,35 +401,44 @@ class ProductForm(tk.Frame):
         except (ValueError, AttributeError):
             shipping_us = 0.0
         
-        # Calculate Etsy fees on the selling price
+        # Calculate Etsy fees for CA and US
         LISTING_FEE = 0.20
         TRANSACTION_RATE = 0.065  # 6.5%
         PAYMENT_RATE = 0.03       # 3%
         PAYMENT_FIXED = 0.25
         
-        etsy_fees = LISTING_FEE + (price_val * TRANSACTION_RATE) + (price_val * PAYMENT_RATE) + PAYMENT_FIXED
+        etsy_fees_ca = LISTING_FEE + (price_ca * TRANSACTION_RATE) + (price_ca * PAYMENT_RATE) + PAYMENT_FIXED
+        etsy_fees_us = LISTING_FEE + (price_us * TRANSACTION_RATE) + (price_us * PAYMENT_RATE) + PAYMENT_FIXED
         
-        # Profit (CA) = Price - (COGS + Shipping CA + Etsy Fees)
-        profit_ca = price_val - (total_cost + shipping_ca + etsy_fees)
+        # Store Etsy fees in entry fields
+        self.entry_etsy_fees_ca.config(state="normal")
+        self.entry_etsy_fees_ca.delete(0, "end")
+        self.entry_etsy_fees_ca.insert(0, f"${etsy_fees_ca:.2f}")
+        self.entry_etsy_fees_ca.config(state="readonly")
+        
+        self.entry_etsy_fees_us.config(state="normal")
+        self.entry_etsy_fees_us.delete(0, "end")
+        self.entry_etsy_fees_us.insert(0, f"${etsy_fees_us:.2f}")
+        self.entry_etsy_fees_us.config(state="readonly")
+        
+        # Profit (CA) = Price CA - (COGS + Shipping CA + Etsy Fees CA)
+        profit_ca = price_ca - (total_cost + shipping_ca + etsy_fees_ca)
         
         self.entry_profit_ca.config(state="normal", fg="green" if profit_ca >= 0 else "red")
         self.entry_profit_ca.delete(0, "end")
         self.entry_profit_ca.insert(0, f"${profit_ca:.2f}")
         self.entry_profit_ca.config(state="readonly")
         
-        # Profit (US) = Price - (COGS + Shipping US + Etsy Fees)
-        profit_us = price_val - (total_cost + shipping_us + etsy_fees)
+        # Profit (US) = Price US - (COGS + Shipping US + Etsy Fees US)
+        profit_us = price_us - (total_cost + shipping_us + etsy_fees_us)
         
         self.entry_profit_us.config(state="normal", fg="green" if profit_us >= 0 else "red")
         self.entry_profit_us.delete(0, "end")
         self.entry_profit_us.insert(0, f"${profit_us:.2f}")
         self.entry_profit_us.config(state="readonly")
         
-        # Keep entry_profit for backward compatibility (use CA profit)
-        self.entry_profit.config(state="normal", fg="green" if profit_ca >= 0 else "red")
-        self.entry_profit.delete(0, "end")
-        self.entry_profit.insert(0, f"${profit_ca:.2f}")
-        self.entry_profit.config(state="readonly")
+        # Keep entry_profit for backward compatibility (set reference to entry_profit_ca)
+        self.entry_profit = self.entry_profit_ca
 
         # Calculate Recommended Price logic
         # Price = (Materials * M) + Labor
@@ -449,11 +476,21 @@ class ProductForm(tk.Frame):
             # Build string with explanation tooltip? Just val for now.
             disp_str = f"${rec_price:.2f} (x{markup:.2f})"
             
+            # Display Recommended Price for both CA and US (same value)
+            self.entry_rec_price_ca.config(state="normal")
+            self.entry_rec_price_ca.delete(0, "end")
+            self.entry_rec_price_ca.insert(0, disp_str)
+            self.entry_rec_price_ca.config(state="readonly")
+            
+            self.entry_rec_price_us.config(state="normal")
+            self.entry_rec_price_us.delete(0, "end")
+            self.entry_rec_price_us.insert(0, disp_str)
+            self.entry_rec_price_us.config(state="readonly")
+
+            # Keep backward compatibility
             self.entry_rec_price.config(state="normal")
             self.entry_rec_price.delete(0, "end")
             self.entry_rec_price.insert(0, disp_str)
-            self.entry_rec_price.config(state="readonly")
-
             self.entry_rec_price.config(state="readonly")
             
         # Calculate Total Weight = Sum of all 'weight' or 'weight_unit' items

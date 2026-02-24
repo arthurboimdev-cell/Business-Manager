@@ -504,3 +504,13 @@ Exception: Database error
 [2026-02-23 20:56:31.999729] Downloading image 1: https://example.com/image2.jpg...
 
 [2026-02-23 20:56:32.000577] Added image 1 (10 bytes)
+
+[2026-02-23 21:16:01.921907] Attempting to create product: Test Rose Candle
+
+[2026-02-23 21:16:01.922953] Successfully created product ID: 123
+
+[2026-02-23 21:16:01.923357] Processing 1 additional images for product 123
+
+[2026-02-23 21:16:01.923780] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 21:16:01.924554] Added image 1 (10 bytes)

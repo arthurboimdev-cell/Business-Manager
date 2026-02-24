@@ -253,7 +253,9 @@ class TestProfitCalculation:
         """Test profit calculation: Price - (COGS + Shipping + Etsy Fees)"""
         from gui.tests.test_advanced_pricing import setup_bom
         
-        set_val(form.entry_price, "25.00")
+        set_val(form.entry_price_ca, "25.00")
+        set_val(form.entry_price_us, "25.00")
+        set_val(form.entry_price_us, "25.00")
         set_val(form.entry_shipping_ca, "5.00")
         
         # Setup BOM to get COGS of ~$10
@@ -273,7 +275,8 @@ class TestProfitCalculation:
         """Test negative profit when costs exceed price"""
         from gui.tests.test_advanced_pricing import setup_bom
         
-        set_val(form.entry_price, "10.00")
+        set_val(form.entry_price_ca, "10.00")
+        set_val(form.entry_price_us, "10.00")
         set_val(form.entry_shipping_ca, "3.00")
         
         # Setup BOM to get COGS of ~$12
@@ -292,7 +295,8 @@ class TestProfitCalculation:
         """Test profit with no shipping cost"""
         from gui.tests.test_advanced_pricing import setup_bom
         
-        set_val(form.entry_price, "20.00")
+        set_val(form.entry_price_ca, "20.00")
+        set_val(form.entry_price_us, "20.00")
         set_val(form.entry_shipping_ca, "0")
         
         # Setup BOM to get COGS of ~$8
@@ -311,7 +315,8 @@ class TestProfitCalculation:
         """Test profit with zero price (should be negative)"""
         from gui.tests.test_advanced_pricing import setup_bom
         
-        set_val(form.entry_price, "0")
+        set_val(form.entry_price_ca, "0")
+        set_val(form.entry_price_us, "0")
         set_val(form.entry_shipping_ca, "2.00")
         
         setup_bom(form, wax_g=50, wax_rate=100)  # $5 COGS
@@ -327,8 +332,9 @@ class TestProfitCalculation:
         """Test that profit CA and profit US are calculated correctly"""
         from gui.tests.test_advanced_pricing import setup_bom
         
-        # Setup: Price = $25, COGS = $10, Shipping CA = $5, Shipping US = $7
-        set_val(form.entry_price, "25.00")
+        # Setup: Price CA = $25, Price US = $25, COGS = $10, Shipping CA = $5, Shipping US = $7
+        set_val(form.entry_price_ca, "25.00")
+        set_val(form.entry_price_us, "25.00")
         set_val(form.entry_shipping_ca, "5.00")
         set_val(form.entry_shipping_us, "7.00")
         
