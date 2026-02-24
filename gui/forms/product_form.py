@@ -1048,3 +1048,91 @@ class ProductForm(tk.Frame):
             self.entry_etsy_fees_us.insert(0, "Error")
             self.entry_etsy_fees_us.config(state="readonly")
 
+    def export_to_csv(self, filepath):
+        """Export current product data to CSV file"""
+        import csv
+        from datetime import datetime
+        
+        try:
+            data = self.get_data()
+            
+            # Prepare rows for CSV
+            rows = []
+            
+            # Basic Info
+            rows.append(("Field", "Value"))
+            rows.append(("Title", data.get("title", "")))
+            rows.append(("SKU", data.get("sku", "")))
+            rows.append(("UPC", data.get("upc", "")))
+            rows.append(("Description", data.get("description", "")))
+            rows.append(("Stock Quantity", data.get("stock_quantity", 0)))
+            
+            # Dimensions
+            rows.append(("Length (cm)", data.get("length_cm", 0)))
+            rows.append(("Width (cm)", data.get("width_cm", 0)))
+            rows.append(("Height (cm)", data.get("height_cm", 0)))
+            rows.append(("Weight (g)", data.get("weight_g", 0)))
+            
+            # Materials
+            rows.append(("Wax Type", data.get("wax_type", "")))
+            rows.append(("Wax Weight (g)", data.get("wax_weight_g", 0)))
+            rows.append(("Wax Rate ($/g)", data.get("wax_rate", 0)))
+            
+            rows.append(("Fragrance Type", data.get("fragrance_type", "")))
+            rows.append(("Fragrance Weight (g)", data.get("fragrance_weight_g", 0)))
+            rows.append(("Fragrance Rate ($/g)", data.get("fragrance_rate", 0)))
+            
+            rows.append(("Wick Type", data.get("wick_type", "")))
+            rows.append(("Wick Rate", data.get("wick_rate", 0)))
+            rows.append(("Wick Quantity", data.get("wick_quantity", 1)))
+            
+            rows.append(("Container Type", data.get("container_type", "")))
+            rows.append(("Container Rate", data.get("container_rate", 0)))
+            rows.append(("Container Quantity", data.get("container_quantity", 1)))
+            
+            rows.append(("Second Container Type", data.get("second_container_type", "")))
+            rows.append(("Second Container Weight (g)", data.get("second_container_weight_g", 0)))
+            rows.append(("Second Container Rate", data.get("second_container_rate", 0)))
+            
+            rows.append(("Box Type", data.get("box_type", "")))
+            rows.append(("Box Price", data.get("box_price", 0)))
+            rows.append(("Box Quantity", data.get("box_quantity", 1)))
+            
+            rows.append(("Wrap Price", data.get("wrap_price", 0)))
+            rows.append(("Business Card Cost", data.get("business_card_cost", 0)))
+            
+            rows.append(("Labor Time (min)", data.get("labor_time", 0)))
+            rows.append(("Labor Rate ($/hour)", data.get("labor_rate", 0)))
+            
+            # Pricing & Profit
+            rows.append(("Price CA ($)", self.entry_price_ca.get().replace('$', '').strip() if self.entry_price_ca.get() else 0))
+            rows.append(("Price US ($)", self.entry_price_us.get().replace('$', '').strip() if self.entry_price_us.get() else 0))
+            rows.append(("Recommended Price CA ($)", self.entry_rec_price_ca.get().replace('$', '').strip() if self.entry_rec_price_ca.get() else 0))
+            rows.append(("Recommended Price US ($)", self.entry_rec_price_us.get().replace('$', '').strip() if self.entry_rec_price_us.get() else 0))
+            rows.append(("COGS ($)", data.get("total_cost", 0)))
+            rows.append(("Profit CA ($)", self.entry_profit_ca.get().replace('$', '').strip() if self.entry_profit_ca.get() else 0))
+            rows.append(("Profit US ($)", self.entry_profit_us.get().replace('$', '').strip() if self.entry_profit_us.get() else 0))
+            
+            # Shipping
+            rows.append(("Shipping CA ($)", self.entry_shipping_ca.get().replace('$', '').strip() if self.entry_shipping_ca.get() else 0))
+            rows.append(("Shipping US ($)", self.entry_shipping_us.get().replace('$', '').strip() if self.entry_shipping_us.get() else 0))
+            rows.append(("Break Even CA ($)", self.entry_break_even_ca.get().replace('$', '').strip() if self.entry_break_even_ca.get() else 0))
+            rows.append(("Break Even US ($)", self.entry_break_even_us.get().replace('$', '').strip() if self.entry_break_even_us.get() else 0))
+            
+            # Etsy Fees
+            rows.append(("Etsy Fees CA ($)", self.entry_etsy_fees_ca.get().replace('$', '').strip() if self.entry_etsy_fees_ca.get() else 0))
+            rows.append(("Etsy Fees US ($)", self.entry_etsy_fees_us.get().replace('$', '').strip() if self.entry_etsy_fees_us.get() else 0))
+            
+            rows.append(("Export Date", datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            
+            # Write to CSV
+            with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerows(rows)
+            
+            messagebox.showinfo("Success", f"Product exported successfully to:\n{filepath}")
+            return True
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to export product:\n{str(e)}")
+            return False

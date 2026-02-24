@@ -42,8 +42,9 @@ class ProductsTab(tk.Frame):
         
         tk.Button(btn_frame, text="Create Product", command=self.open_create_dialog, bg="#4CAF50", fg="white").pack(side="left", padx=2)
         tk.Button(btn_frame, text="Update Product", command=self.update_product, bg="#FF9800", fg="white").pack(side="left", padx=2)
+        tk.Button(btn_frame, text="Export to CSV", command=self.export_product_csv, bg="#2196F3", fg="white").pack(side="left", padx=2)
         tk.Button(btn_frame, text="Clear", command=self.form.clear).pack(side="left", padx=2)
-        tk.Button(btn_frame, text="Import from Etsy CSV", command=self.import_from_etsy, bg="#2196F3", fg="white").pack(side="left", padx=2)
+        tk.Button(btn_frame, text="Import from Etsy CSV", command=self.import_from_etsy, bg="#9C27B0", fg="white").pack(side="left", padx=2)
 
 
     def open_create_dialog(self):
@@ -77,6 +78,30 @@ class ProductsTab(tk.Frame):
         except Exception as e:
              messagebox.showerror("Error", f"Failed to update product: {e}")
 
+    def export_product_csv(self):
+        """Export current product to CSV file"""
+        try:
+            # Check if product has title (required field)
+            title = self.form.entry_title.get().strip()
+            if not title:
+                messagebox.showwarning("Warning", "Please fill in product title before exporting")
+                return
+            
+            # Ask user where to save the file
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+                initialfile=f"{title.replace(' ', '_')}.csv"
+            )
+            
+            if not filename:
+                return  # User cancelled
+            
+            # Call the export method from the form
+            self.form.export_to_csv(filename)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to export product: {e}")
     def create_list_frame(self):
         # Treeview for products
         self.search_frame = tk.Frame(self.right_panel)

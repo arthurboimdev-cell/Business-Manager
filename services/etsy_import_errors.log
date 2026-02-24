@@ -514,3 +514,23 @@ Exception: Database error
 [2026-02-23 21:16:01.923780] Downloading image 1: https://example.com/image2.jpg...
 
 [2026-02-23 21:16:01.924554] Added image 1 (10 bytes)
+
+[2026-02-23 21:24:48.285969] Attempting to create product: Test Rose Candle
+
+[2026-02-23 21:24:48.286907] Successfully created product ID: 123
+
+[2026-02-23 21:24:48.287827] Processing 1 additional images for product 123
+
+[2026-02-23 21:24:48.288561] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-23 21:24:48.289465] Added image 1 (10 bytes)
+
+[2026-02-24 09:28:45.348483] Attempting to create product: Test Rose Candle
+
+[2026-02-24 09:28:45.349748] Successfully created product ID: 123
+
+[2026-02-24 09:28:45.350378] Processing 1 additional images for product 123
+
+[2026-02-24 09:28:45.351209] Downloading image 1: https://example.com/image2.jpg...
+
+[2026-02-24 09:28:45.352203] Added image 1 (10 bytes)
