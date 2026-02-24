@@ -123,14 +123,14 @@ class ProductForm(tk.Frame):
         self.entry_profit_us = tk.Entry(frame_general, width=12, state="readonly", fg="green", readonlybackground=default_bg)
         self.entry_profit_us.grid(row=9, column=3, sticky="w", padx=2)
 
-        # Etsy Fees CA (Row 9)
-        tk.Label(frame_general, text="Etsy Fees (CA):").grid(row=9, column=0, sticky="w", pady=2)
+        # Etsy Fees CA & US (Row 10)
+        tk.Label(frame_general, text="Etsy Fees (CA):").grid(row=10, column=0, sticky="w", pady=2)
         self.entry_etsy_fees_ca = tk.Entry(frame_general, width=10, state="readonly", fg="orange", readonlybackground=default_bg)
-        self.entry_etsy_fees_ca.grid(row=9, column=1, sticky="w", padx=2, pady=2)
+        self.entry_etsy_fees_ca.grid(row=10, column=1, sticky="w", padx=2, pady=2)
         
-        tk.Label(frame_general, text="Etsy Fees (US):").grid(row=9, column=2, sticky="w")
+        tk.Label(frame_general, text="Etsy Fees (US):").grid(row=10, column=2, sticky="w")
         self.entry_etsy_fees_us = tk.Entry(frame_general, width=12, state="readonly", fg="orange", readonlybackground=default_bg)
-        self.entry_etsy_fees_us.grid(row=9, column=3, sticky="w", padx=2)
+        self.entry_etsy_fees_us.grid(row=10, column=3, sticky="w", padx=2)
 
         # --- Right Side: Main Image Preview ---
         frame_right = tk.LabelFrame(frame_top, text="Main Image", padx=5, pady=5)
