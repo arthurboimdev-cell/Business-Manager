@@ -322,3 +322,32 @@ class TestProfitCalculation:
         args, _ = calls[-1]
         profit = float(args[1].replace('$', ''))
         assert profit < 0  # Should be negative
+    
+    def test_profit_ca_vs_us(self, form):
+        """Test that profit CA and profit US are calculated correctly"""
+        from gui.tests.test_advanced_pricing import setup_bom
+        
+        # Setup: Price = $25, COGS = $10, Shipping CA = $5, Shipping US = $7
+        set_val(form.entry_price, "25.00")
+        set_val(form.entry_shipping_ca, "5.00")
+        set_val(form.entry_shipping_us, "7.00")
+        
+        setup_bom(form, wax_g=100, wax_rate=100)  # $10 COGS
+        
+        form.calculate_cogs()
+        
+        # Etsy fees on $25: 0.20 + 1.625 + 0.75 + 0.25 = 2.825
+        # Profit CA = 25 - (10 + 5 + 2.825) = 7.175
+        # Profit US = 25 - (10 + 7 + 2.825) = 5.175
+        
+        calls_ca = form.entry_profit_ca.insert.call_args_list
+        args_ca, _ = calls_ca[-1]
+        profit_ca = float(args_ca[1].replace('$', ''))
+        assert 7.15 < profit_ca < 7.20
+        
+        # Mock entry_profit_us and verify it was called
+        assert hasattr(form, 'entry_profit_us')
+        calls_us = form.entry_profit_us.insert.call_args_list
+        args_us, _ = calls_us[-1]
+        profit_us = float(args_us[1].replace('$', ''))
+        assert 5.15 < profit_us < 5.20

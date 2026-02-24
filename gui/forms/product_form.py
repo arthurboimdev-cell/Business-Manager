@@ -114,6 +114,15 @@ class ProductForm(tk.Frame):
         self.entry_break_even_us = tk.Entry(frame_general, width=12, state="readonly", fg="black", readonlybackground=default_bg)
         self.entry_break_even_us.grid(row=8, column=3, sticky="w", padx=2)
 
+        # Profit (CA) & Profit (US) (Row 9)
+        tk.Label(frame_general, text="Profit (CA):").grid(row=9, column=0, sticky="w", pady=2)
+        self.entry_profit_ca = tk.Entry(frame_general, width=10, state="readonly", fg="green", readonlybackground=default_bg)
+        self.entry_profit_ca.grid(row=9, column=1, sticky="w", padx=2, pady=2)
+        
+        tk.Label(frame_general, text="Profit (US):").grid(row=9, column=2, sticky="w")
+        self.entry_profit_us = tk.Entry(frame_general, width=12, state="readonly", fg="green", readonlybackground=default_bg)
+        self.entry_profit_us.grid(row=9, column=3, sticky="w", padx=2)
+
         # Etsy Fees CA (Row 9)
         tk.Label(frame_general, text="Etsy Fees (CA):").grid(row=9, column=0, sticky="w", pady=2)
         self.entry_etsy_fees_ca = tk.Entry(frame_general, width=10, state="readonly", fg="orange", readonlybackground=default_bg)
@@ -361,12 +370,18 @@ class ProductForm(tk.Frame):
         except ValueError:
              price_val = 0.0
         
-        # Get Shipping (use CA by default)
+        # Get Shipping for CA and US
         try:
             ship_ca_str = self.entry_shipping_ca.get().replace('$', '').strip()
-            shipping_val = float(ship_ca_str) if ship_ca_str and ship_ca_str not in ["N/A", "Error"] else 0.0
+            shipping_ca = float(ship_ca_str) if ship_ca_str and ship_ca_str not in ["N/A", "Error"] else 0.0
         except (ValueError, AttributeError):
-            shipping_val = 0.0
+            shipping_ca = 0.0
+        
+        try:
+            ship_us_str = self.entry_shipping_us.get().replace('$', '').strip()
+            shipping_us = float(ship_us_str) if ship_us_str and ship_us_str not in ["N/A", "Error"] else 0.0
+        except (ValueError, AttributeError):
+            shipping_us = 0.0
         
         # Calculate Etsy fees on the selling price
         LISTING_FEE = 0.20
@@ -376,12 +391,26 @@ class ProductForm(tk.Frame):
         
         etsy_fees = LISTING_FEE + (price_val * TRANSACTION_RATE) + (price_val * PAYMENT_RATE) + PAYMENT_FIXED
         
-        # Profit = Price - (COGS + Shipping + Etsy Fees)
-        profit = price_val - (total_cost + shipping_val + etsy_fees)
+        # Profit (CA) = Price - (COGS + Shipping CA + Etsy Fees)
+        profit_ca = price_val - (total_cost + shipping_ca + etsy_fees)
         
-        self.entry_profit.config(state="normal", fg="green" if profit >= 0 else "red")
+        self.entry_profit_ca.config(state="normal", fg="green" if profit_ca >= 0 else "red")
+        self.entry_profit_ca.delete(0, "end")
+        self.entry_profit_ca.insert(0, f"${profit_ca:.2f}")
+        self.entry_profit_ca.config(state="readonly")
+        
+        # Profit (US) = Price - (COGS + Shipping US + Etsy Fees)
+        profit_us = price_val - (total_cost + shipping_us + etsy_fees)
+        
+        self.entry_profit_us.config(state="normal", fg="green" if profit_us >= 0 else "red")
+        self.entry_profit_us.delete(0, "end")
+        self.entry_profit_us.insert(0, f"${profit_us:.2f}")
+        self.entry_profit_us.config(state="readonly")
+        
+        # Keep entry_profit for backward compatibility (use CA profit)
+        self.entry_profit.config(state="normal", fg="green" if profit_ca >= 0 else "red")
         self.entry_profit.delete(0, "end")
-        self.entry_profit.insert(0, f"${profit:.2f}")
+        self.entry_profit.insert(0, f"${profit_ca:.2f}")
         self.entry_profit.config(state="readonly")
 
         # Calculate Recommended Price logic
